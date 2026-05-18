@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/bg_dark"
+    android:padding="40dp">
+
+    <TextView
+        android:id="@+id/tvAlarmType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Alarm"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:text="⏰"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="80sp"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:id="@+id/tvAlarmLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Wake Up"
+        android:textSize="32sp"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tvLockNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="14sp"
+        android:textColor="@color/orange_muted"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="60dp"
+        android:visibility="gone" />
+
+    <!-- Stop button -->
+    <Button
+        android:id="@+id/btnStop"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
+        android:text="STOP"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/text_hint"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Snooze button -->
+    <Button
+        android:id="@+id/btnSnooze"
+        android:layout_width="220dp"
+        android:layout_height="56dp"
+        android:text="SNOOZE  · 5 min"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:backgroundTint="#1A1A1A" />
+
+</LinearLayout>
