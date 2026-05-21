@@ -18,23 +18,27 @@
             android:orientation="vertical"
             android:paddingHorizontal="24dp"
             android:paddingTop="52dp"
-            android:paddingBottom="16dp">
+            android:paddingBottom="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="MorningLock"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textColor="@color/text_primary"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:fontFamily="@font/inter" />
 
+            <!-- Time-based greeting replaces second "MorningLock" -->
             <TextView
+                android:id="@+id/tvGreeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your alarms. Your morning."
+                android:text="Good morning, Akash ☀️"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="2dp" />
+                android:fontFamily="@font/inter"
+                android:layout_marginTop="3dp" />
 
         </LinearLayout>
 
@@ -47,6 +51,7 @@
             android:paddingHorizontal="24dp"
             android:paddingVertical="12dp"
             android:textColor="#AAFF44"
+            android:fontFamily="@font/inter"
             android:textSize="13sp"
             android:visibility="gone" />
 
@@ -58,6 +63,7 @@
             android:layout_weight="1"
             android:paddingHorizontal="16dp"
             android:paddingTop="8dp"
+            android:paddingBottom="80dp"
             android:clipToPadding="false" />
 
         <!-- Empty state -->
@@ -69,6 +75,7 @@
             android:gravity="center"
             android:text="No alarms yet.\nTap + to add your first one."
             android:textColor="@color/text_secondary"
+            android:fontFamily="@font/inter"
             android:textSize="15sp"
             android:lineSpacingExtra="6dp"
             android:visibility="gone" />

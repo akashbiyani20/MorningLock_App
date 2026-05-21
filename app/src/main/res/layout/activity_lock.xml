@@ -5,44 +5,52 @@
     android:orientation="vertical"
     android:gravity="center"
     android:background="@color/bg_dark"
-    android:padding="40dp">
+    android:padding="36dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="🔒"
-        android:textSize="72sp"
-        android:layout_marginBottom="24dp" />
+        android:textSize="56sp"
+        android:layout_marginBottom="20dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Morning Lock"
-        android:textSize="30sp"
+        android:textSize="28sp"
         android:textColor="@color/text_primary"
         android:textStyle="bold"
+        android:fontFamily="@font/inter"
         android:gravity="center"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="20dp" />
 
+    <!-- Rotating motivational quote -->
     <TextView
+        android:id="@+id/tvQuote"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Put the phone down.\nBe present."
-        android:textSize="16sp"
+        android:text=""
+        android:textSize="15sp"
         android:textColor="@color/text_secondary"
+        android:fontFamily="@font/inter"
         android:gravity="center"
-        android:lineSpacingExtra="4dp"
-        android:layout_marginBottom="48dp" />
+        android:lineSpacingExtra="5dp"
+        android:fontFeatureSettings="normal"
+        android:textStyle="italic"
+        android:layout_marginBottom="40dp"
+        android:paddingHorizontal="8dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TIME REMAINING"
-        android:textSize="11sp"
+        android:textSize="10sp"
         android:textColor="@color/orange_primary"
         android:textStyle="bold"
+        android:fontFamily="@font/inter"
         android:letterSpacing="0.2"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="6dp" />
 
     <TextView
         android:id="@+id/tvTimer"
@@ -53,38 +61,53 @@
         android:textColor="@color/text_primary"
         android:textStyle="bold"
         android:fontFamily="monospace"
-        android:layout_marginBottom="12dp" />
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/tvUnlockTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Unlocks at 9:00 AM"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textColor="@color/text_hint"
-        android:layout_marginBottom="64dp" />
+        android:fontFamily="@font/inter"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Extend +10 min -->
+    <Button
+        android:id="@+id/btnExtend"
+        android:layout_width="160dp"
+        android:layout_height="40dp"
+        android:text="+ 10 min"
+        android:textSize="13sp"
+        android:textColor="@color/text_hint"
+        android:fontFamily="@font/inter"
+        android:backgroundTint="#1A1A1A"
+        android:layout_marginBottom="32dp" />
 
     <View
-        android:layout_width="60dp"
+        android:layout_width="48dp"
         android:layout_height="1dp"
-        android:background="#222222"
-        android:layout_marginBottom="40dp" />
+        android:background="#1E1E1E"
+        android:layout_marginBottom="28dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Need to make a call?"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:textColor="@color/text_hint"
+        android:fontFamily="@font/inter"
         android:gravity="center"
-        android:layout_marginBottom="12dp" />
+        android:layout_marginBottom="10dp" />
 
     <Button
         android:id="@+id/btnCall"
-        android:layout_width="200dp"
-        android:layout_height="52dp"
+        android:layout_width="180dp"
+        android:layout_height="48dp"
         android:text="📞  Open Dialer"
-        android:textSize="14sp"
+        android:textSize="13sp"
+        android:fontFamily="@font/inter"
         android:textColor="#FFFFFF"
         android:backgroundTint="#0D2B0D" />
 

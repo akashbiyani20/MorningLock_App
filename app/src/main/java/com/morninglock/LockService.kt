@@ -14,15 +14,26 @@ class LockService : Service() {
         var isRunning = false
         var lockEndTime: Long = 0L
 
-        val WHITELIST = setOf(
+        // Whitelisted always (system + dialer)
+        val WHITELIST_ALWAYS = setOf(
             "com.android.dialer",
             "com.google.android.dialer",
+            "com.nothing.dialer",
             "com.android.phone",
             "com.morninglock",
             "com.android.systemui",
-            "com.nothing.launcher",       // Nothing Phone launcher
+            "com.nothing.launcher",
             "com.android.launcher",
-            "com.google.android.apps.nexuslauncher"
+            "com.google.android.apps.nexuslauncher",
+            "com.samsung.android.app.launcher",
+            "com.sec.android.app.launcher"
+        )
+
+        // WhatsApp whitelisted for incoming calls
+        // These are allowed fully during lock so incoming calls can be received
+        val WHITELIST_CALLS = setOf(
+            "com.whatsapp",
+            "com.whatsapp.w4b"   // WhatsApp Business
         )
     }
 
@@ -49,33 +60,40 @@ class LockService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // BUG FIX: Read duration from intent, default 30 only as fallback
         val durationMinutes = intent?.getIntExtra("lock_duration_minutes", 30) ?: 30
+        Log.d("MorningLock", "Starting lock for $durationMinutes minutes")
+
         isRunning = true
-        lockEndTime = System.currentTimeMillis() + durationMinutes * 60 * 1000L
+        lockEndTime = System.currentTimeMillis() + (durationMinutes * 60 * 1000L)
 
         startForeground(1, buildNotification())
-
-        // Show lock screen immediately
         launchLockActivity()
-
         handler.post(monitorRunnable)
         return START_STICKY
     }
 
     private fun checkAndBlock() {
         val foreground = getForegroundApp() ?: return
-        if (!isWhitelisted(foreground)) {
+        if (!isAllowed(foreground)) {
             launchLockActivity()
         }
     }
 
+    private fun isAllowed(pkg: String): Boolean {
+        if (WHITELIST_ALWAYS.contains(pkg)) return true
+        if (WHITELIST_CALLS.contains(pkg)) return true  // WhatsApp allowed
+        if (pkg.contains("dialer", ignoreCase = true)) return true
+        if (pkg.contains("launcher", ignoreCase = true)) return true
+        if (pkg.contains("systemui", ignoreCase = true)) return true
+        return false
+    }
+
     private fun launchLockActivity() {
-        val remaining = ((lockEndTime - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
         val intent = Intent(this, LockActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("seconds_remaining", remaining)
             putExtra("lock_end_time", lockEndTime)
         }
         startActivity(intent)
@@ -90,19 +108,8 @@ class LockService : Service() {
             ?.packageName
     }
 
-    private fun isWhitelisted(pkg: String): Boolean {
-        if (WHITELIST.contains(pkg)) return true
-        if (pkg.contains("dialer", ignoreCase = true)) return true
-        if (pkg.contains("launcher", ignoreCase = true)) return true
-        if (pkg.contains("systemui", ignoreCase = true)) return true
-        return false
-    }
-
-    private fun remainingMinutes() =
-        ((lockEndTime - System.currentTimeMillis()) / 1000 / 60).coerceAtLeast(0)
-
-    private fun remainingSeconds() =
-        ((lockEndTime - System.currentTimeMillis()) / 1000 % 60).coerceAtLeast(0)
+    private fun remainingMinutes() = ((lockEndTime - System.currentTimeMillis()) / 1000 / 60).coerceAtLeast(0)
+    private fun remainingSeconds() = ((lockEndTime - System.currentTimeMillis()) / 1000 % 60).coerceAtLeast(0)
 
     private fun buildNotification(): Notification {
         return Notification.Builder(this, CHANNEL_ID)

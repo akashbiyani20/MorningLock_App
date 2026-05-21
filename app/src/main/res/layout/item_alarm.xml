@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="18dp"
         android:gravity="center_vertical"
         android:background="@drawable/bg_card_normal">
 
@@ -21,7 +21,6 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- PRIMARY badge -->
             <TextView
                 android:id="@+id/tvType"
                 android:layout_width="wrap_content"
@@ -30,6 +29,7 @@
                 android:textSize="10sp"
                 android:textColor="@color/orange_primary"
                 android:textStyle="bold"
+                android:fontFamily="@font/inter"
                 android:letterSpacing="0.15"
                 android:layout_marginBottom="2dp"
                 android:visibility="gone" />
@@ -39,8 +39,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="8:00 AM"
-                android:textSize="36sp"
+                android:textSize="38sp"
                 android:textStyle="bold"
+                android:fontFamily="@font/inter"
                 android:textColor="@color/text_primary" />
 
             <TextView
@@ -50,6 +51,7 @@
                 android:text="Wake Up"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter"
                 android:layout_marginTop="2dp" />
 
             <TextView
@@ -59,16 +61,18 @@
                 android:text="Every day"
                 android:textSize="12sp"
                 android:textColor="@color/text_hint"
+                android:fontFamily="@font/inter"
                 android:layout_marginTop="2dp" />
 
             <TextView
                 android:id="@+id/tvLockInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔒 Locks for 45 min on stop"
+                android:text="🔒 Locks for 30 min on stop"
                 android:textSize="12sp"
                 android:textColor="@color/orange_muted"
-                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:layout_marginTop="6dp"
                 android:visibility="gone" />
 
         </LinearLayout>
@@ -78,22 +82,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:layout_marginStart="12dp">
 
             <Switch
                 android:id="@+id/switchEnabled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+            <!-- Modern delete icon: X in a circle -->
             <ImageButton
                 android:id="@+id/btnDelete"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:src="@android:drawable/ic_menu_delete"
+                android:src="@drawable/ic_delete_modern"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="@color/text_hint"
-                android:layout_marginTop="8dp"
-                android:contentDescription="Delete alarm" />
+                android:layout_marginTop="10dp"
+                android:contentDescription="Delete alarm"
+                android:padding="6dp" />
 
         </LinearLayout>
 

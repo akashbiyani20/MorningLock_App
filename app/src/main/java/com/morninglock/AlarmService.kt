@@ -32,13 +32,11 @@ class AlarmService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_SNOOZE -> {
-                val alarmId = intent.getIntExtra("alarm_id", -1)
-                snoozeAlarm(alarmId)
+                snoozeAlarm(intent.getIntExtra("alarm_id", -1))
                 return START_NOT_STICKY
             }
             ACTION_STOP -> {
-                val alarmId = intent.getIntExtra("alarm_id", -1)
-                stopAlarm(alarmId, triggeredByUser = true)
+                stopAlarm(intent.getIntExtra("alarm_id", -1), triggeredByUser = true)
                 return START_NOT_STICKY
             }
             else -> {
@@ -58,22 +56,16 @@ class AlarmService : Service() {
                 ?: return@launch
 
             withContext(Dispatchers.Main) {
-                // Show notification
                 startForeground(alarmId + 100, buildNotification(alarm))
-
-                // Vibrate
                 if (alarm.vibrate) startVibration()
-
-                // Play ringtone
                 playRingtone(alarm.ringtoneUri)
 
-                // Launch AlarmRingActivity (full screen)
                 val actIntent = Intent(this@AlarmService, AlarmRingActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     putExtra("alarm_id", alarmId)
                     putExtra("is_primary", alarm.isPrimary)
                     putExtra("alarm_label", alarm.label)
-                    putExtra("lock_duration", alarm.lockDurationMinutes)
+                    putExtra("lock_duration_minutes", alarm.lockDurationMinutes) // KEY FIX: pass exact duration
                 }
                 startActivity(actIntent)
             }
@@ -84,15 +76,9 @@ class AlarmService : Service() {
         scope.launch {
             val alarm = AppDatabase.getInstance(this@AlarmService).alarmDao().getAlarm(alarmId)
                 ?: return@launch
-
-            // Schedule snooze
-            val snoozeAlarm = alarm.copy(
-                id = alarm.id,
-                hour = snoozeHour(alarm),
-                minute = snoozeMinute(alarm)
-            )
+            val totalMin = alarm.hour * 60 + alarm.minute + alarm.snoozeMinutes
+            val snoozeAlarm = alarm.copy(hour = (totalMin / 60) % 24, minute = totalMin % 60)
             AlarmScheduler.schedule(this@AlarmService, snoozeAlarm)
-
             withContext(Dispatchers.Main) { releaseResources() }
         }
     }
@@ -102,10 +88,9 @@ class AlarmService : Service() {
             val alarm = AppDatabase.getInstance(this@AlarmService).alarmDao().getAlarm(alarmId)
 
             if (alarm != null) {
-                // Reschedule for tomorrow if repeating
                 AlarmScheduler.rescheduleForTomorrow(this@AlarmService, alarm)
 
-                // If primary and user explicitly stopped → start lockdown
+                // BUG FIX: pass the actual lockDurationMinutes from the alarm object
                 if (alarm.isPrimary && triggeredByUser) {
                     withContext(Dispatchers.Main) {
                         val lockIntent = Intent(this@AlarmService, LockService::class.java).apply {
@@ -115,28 +100,16 @@ class AlarmService : Service() {
                     }
                 }
             }
-
             withContext(Dispatchers.Main) { releaseResources() }
         }
     }
 
-    private fun snoozeHour(alarm: Alarm): Int {
-        val totalMinutes = alarm.hour * 60 + alarm.minute + alarm.snoozeMinutes
-        return (totalMinutes / 60) % 24
-    }
-
-    private fun snoozeMinute(alarm: Alarm): Int {
-        val totalMinutes = alarm.hour * 60 + alarm.minute + alarm.snoozeMinutes
-        return totalMinutes % 60
-    }
-
     private fun playRingtone(uriString: String) {
         try {
-            val uri = if (uriString == "default") {
+            val uri = if (uriString == "default")
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            } else {
-                Uri.parse(uriString)
-            }
+            else Uri.parse(uriString)
+
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -150,7 +123,7 @@ class AlarmService : Service() {
                 start()
             }
         } catch (e: Exception) {
-            // fallback to default
+            android.util.Log.e("AlarmService", "Ringtone error: ${e.message}")
         }
     }
 
@@ -189,10 +162,7 @@ class AlarmService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID, "Alarm", NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Alarm notifications"
-            setSound(null, null) // Sound handled by MediaPlayer
-        }
+        ).apply { setSound(null, null) }
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
             .createNotificationChannel(channel)
     }

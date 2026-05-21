@@ -4,21 +4,21 @@ import android.app.TimePickerDialog
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Bundle
+import android.os.*
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class EditAlarmActivity : AppCompatActivity() {
 
     private var alarmId: Int = -1
-    private var existingAlarm: Alarm? = null
     private var selectedHour   = 8
     private var selectedMinute = 0
-    private var isPrimary      = false
     private var selectedRingtoneUri = "default"
-    private var lockDuration   = 30
+    private var lastSliderProgress = 0
 
     private lateinit var tvTime:         TextView
     private lateinit var etLabel:        EditText
@@ -30,7 +30,9 @@ class EditAlarmActivity : AppCompatActivity() {
     private lateinit var tvLockDuration: TextView
     private lateinit var btnSave:        Button
     private lateinit var tvPrimaryNote:  TextView
+    private lateinit var tvTimeUntil:    TextView
 
+    private var vibrator: Vibrator? = null
     private val RINGTONE_REQUEST = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +40,13 @@ class EditAlarmActivity : AppCompatActivity() {
         setContentView(R.layout.activity_edit_alarm)
 
         alarmId = intent.getIntExtra("alarm_id", -1)
+
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(VIBRATOR_SERVICE) as Vibrator
+        }
 
         tvTime         = findViewById(R.id.tvTime)
         etLabel        = findViewById(R.id.etLabel)
@@ -49,28 +58,37 @@ class EditAlarmActivity : AppCompatActivity() {
         tvLockDuration = findViewById(R.id.tvLockDuration)
         btnSave        = findViewById(R.id.btnSave)
         tvPrimaryNote  = findViewById(R.id.tvPrimaryNote)
+        tvTimeUntil    = findViewById(R.id.tvTimeUntil)
 
-        // Slider: 0 = 30 min, 90 = 120 min (step = 1 min)
+        // Slider: 0 = 30 min, 90 = 120 min (1 step = 1 minute, haptic each step)
         seekLock.max = 90
         seekLock.progress = 0
+        lastSliderProgress = 0
+
         seekLock.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
-                lockDuration = 30 + progress
-                tvLockDuration.text = formatDuration(lockDuration)
+                val duration = 30 + progress
+                tvLockDuration.text = formatDuration(duration)
+                if (fromUser && progress != lastSliderProgress) {
+                    vibrateSliderTick()
+                    lastSliderProgress = progress
+                }
             }
             override fun onStartTrackingTouch(sb: SeekBar?) {}
-            override fun onStopTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {
+                vibrator?.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
+            }
         })
 
         switchPrimary.setOnCheckedChangeListener { _, checked ->
-            isPrimary = checked
-            lockSection.visibility = if (checked) android.view.View.VISIBLE else android.view.View.GONE
-            tvPrimaryNote.visibility = if (checked) android.view.View.VISIBLE else android.view.View.GONE
+            lockSection.visibility   = if (checked) View.VISIBLE else View.GONE
+            tvPrimaryNote.visibility = if (checked) View.VISIBLE else View.GONE
         }
 
         tvTime.setOnClickListener { showTimePicker() }
 
-        tvRingtone.setOnClickListener {
+        // Ringtone row click
+        findViewById<View>(R.id.ringtoneRow).setOnClickListener {
             val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                 putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
@@ -79,41 +97,53 @@ class EditAlarmActivity : AppCompatActivity() {
                     putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(selectedRingtoneUri))
                 }
             }
+            @Suppress("DEPRECATION")
             startActivityForResult(intent, RINGTONE_REQUEST)
         }
 
         btnSave.setOnClickListener { saveAlarm() }
 
-        // Load existing alarm if editing
         if (alarmId != -1) {
             lifecycleScope.launch {
-                existingAlarm = AppDatabase.getInstance(this@EditAlarmActivity).alarmDao().getAlarm(alarmId)
-                existingAlarm?.let { populateFields(it) }
+                val alarm = AppDatabase.getInstance(this@EditAlarmActivity).alarmDao().getAlarm(alarmId)
+                alarm?.let { populateFields(it) }
             }
         } else {
             updateTimeDisplay()
+            updateTimeUntil()
         }
 
         supportActionBar?.title = if (alarmId == -1) "New Alarm" else "Edit Alarm"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
+    private fun vibrateSliderTick() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
+        } else {
+            vibrator?.vibrate(VibrationEffect.createOneShot(15, 80))
+        }
+    }
+
     private fun populateFields(alarm: Alarm) {
-        selectedHour   = alarm.hour
-        selectedMinute = alarm.minute
-        isPrimary      = alarm.isPrimary
-        lockDuration   = alarm.lockDurationMinutes
+        selectedHour        = alarm.hour
+        selectedMinute      = alarm.minute
         selectedRingtoneUri = alarm.ringtoneUri
 
         updateTimeDisplay()
+        updateTimeUntil()
         etLabel.setText(alarm.label)
         switchPrimary.isChecked = alarm.isPrimary
         switchVibrate.isChecked = alarm.vibrate
-        seekLock.progress = (alarm.lockDurationMinutes - 30).coerceIn(0, 90)
+
+        val sliderProgress = (alarm.lockDurationMinutes - 30).coerceIn(0, 90)
+        seekLock.progress  = sliderProgress
+        lastSliderProgress = sliderProgress
         tvLockDuration.text = formatDuration(alarm.lockDurationMinutes)
-        lockSection.visibility  = if (alarm.isPrimary) android.view.View.VISIBLE else android.view.View.GONE
-        tvPrimaryNote.visibility = if (alarm.isPrimary) android.view.View.VISIBLE else android.view.View.GONE
-        tvRingtone.text = if (alarm.ringtoneUri == "default") "Default alarm" else "Custom ringtone"
+
+        lockSection.visibility   = if (alarm.isPrimary) View.VISIBLE else View.GONE
+        tvPrimaryNote.visibility = if (alarm.isPrimary) View.VISIBLE else View.GONE
+        tvRingtone.text = if (alarm.ringtoneUri == "default") "Default alarm" else "Custom"
     }
 
     private fun showTimePicker() {
@@ -121,6 +151,9 @@ class EditAlarmActivity : AppCompatActivity() {
             selectedHour   = hour
             selectedMinute = minute
             updateTimeDisplay()
+            updateTimeUntil()
+            // Small haptic on time selection
+            vibrator?.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
         }, selectedHour, selectedMinute, false).show()
     }
 
@@ -134,7 +167,31 @@ class EditAlarmActivity : AppCompatActivity() {
         tvTime.text = "%d:%02d %s".format(h, selectedMinute, amPm)
     }
 
+    private fun updateTimeUntil() {
+        val now   = Calendar.getInstance()
+        val alarm = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, selectedHour)
+            set(Calendar.MINUTE, selectedMinute)
+            set(Calendar.SECOND, 0)
+            if (timeInMillis <= now.timeInMillis) add(Calendar.DAY_OF_YEAR, 1)
+        }
+        val diffMs    = alarm.timeInMillis - now.timeInMillis
+        val totalMins = (diffMs / 1000 / 60).toInt()
+        val hours     = totalMins / 60
+        val mins      = totalMins % 60
+
+        tvTimeUntil.text = when {
+            hours > 0 && mins > 0 -> "Alarm in ${hours}h ${mins}m"
+            hours > 0             -> "Alarm in ${hours}h"
+            else                  -> "Alarm in ${mins}m"
+        }
+        tvTimeUntil.visibility = View.VISIBLE
+    }
+
     private fun saveAlarm() {
+        // Read slider value directly — this was the bug causing 30min always
+        val finalLockDuration = 30 + seekLock.progress
+
         val alarm = Alarm(
             id                  = if (alarmId == -1) 0 else alarmId,
             hour                = selectedHour,
@@ -143,10 +200,10 @@ class EditAlarmActivity : AppCompatActivity() {
             isPrimary           = switchPrimary.isChecked,
             isEnabled           = true,
             snoozeMinutes       = 5,
-            lockDurationMinutes = lockDuration,
+            lockDurationMinutes = finalLockDuration,
             vibrate             = switchVibrate.isChecked,
             ringtoneUri         = selectedRingtoneUri,
-            repeatDays          = 127 // Every day by default
+            repeatDays          = 127
         )
 
         lifecycleScope.launch {
@@ -159,6 +216,8 @@ class EditAlarmActivity : AppCompatActivity() {
                 AlarmScheduler.cancel(this@EditAlarmActivity, alarm)
                 AlarmScheduler.schedule(this@EditAlarmActivity, alarm)
             }
+            // Haptic on save
+            vibrator?.vibrate(VibrationEffect.createOneShot(60, VibrationEffect.DEFAULT_AMPLITUDE))
             finish()
         }
     }
@@ -172,6 +231,7 @@ class EditAlarmActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RINGTONE_REQUEST && resultCode == RESULT_OK) {
@@ -186,8 +246,5 @@ class EditAlarmActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
-    }
+    override fun onSupportNavigateUp(): Boolean { finish(); return true }
 }

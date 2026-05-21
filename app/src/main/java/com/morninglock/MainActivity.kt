@@ -7,9 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -18,11 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var db: AppDatabase
     private lateinit var adapter: AlarmAdapter
+    private lateinit var tvGreeting: TextView
     private lateinit var tvPermWarning: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +33,10 @@ class MainActivity : AppCompatActivity() {
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerAlarms)
         val fab          = findViewById<FloatingActionButton>(R.id.fabAddAlarm)
+        tvGreeting       = findViewById(R.id.tvGreeting)
         tvPermWarning    = findViewById(R.id.tvPermWarning)
+
+        setGreeting()
 
         adapter = AlarmAdapter(
             onToggle = { alarm, enabled ->
@@ -45,10 +48,9 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onEdit = { alarm ->
-                val intent = Intent(this, EditAlarmActivity::class.java).apply {
+                startActivity(Intent(this, EditAlarmActivity::class.java).apply {
                     putExtra("alarm_id", alarm.id)
-                }
-                startActivity(intent)
+                })
             },
             onDelete = { alarm ->
                 lifecycleScope.launch {
@@ -76,27 +78,35 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        setGreeting()
         checkPermissions()
     }
 
+    private fun setGreeting() {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        tvGreeting.text = when (hour) {
+            in 4..11  -> "Good morning, Akash ☀️"
+            in 12..16 -> "Coffee time, Akash ☕"
+            in 17..20 -> "Good evening, Akash 🌆"
+            else      -> "Night owl mode, Akash 🌙"
+        }
+    }
+
     private fun checkPermissions() {
-        val usageOk = hasUsageStatsPermission()
+        val usageOk  = hasUsageStatsPermission()
         val overlayOk = Settings.canDrawOverlays(this)
 
         if (!usageOk || !overlayOk) {
             tvPermWarning.visibility = View.VISIBLE
             tvPermWarning.text = buildString {
-                if (!usageOk)   append("⚠️ Usage Access needed  ")
+                if (!usageOk)   append("⚠️ Usage Access needed   ")
                 if (!overlayOk) append("⚠️ Overlay permission needed")
-                append("\nTap to fix →")
+                append("\nTap here to fix →")
             }
             tvPermWarning.setOnClickListener {
-                if (!usageOk) {
-                    startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                } else {
-                    startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName")))
-                }
+                if (!usageOk) startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                else startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")))
             }
         } else {
             tvPermWarning.visibility = View.GONE
@@ -127,14 +137,14 @@ class AlarmAdapter(
     }
 
     inner class AlarmViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val card:       View         = view.findViewById(R.id.alarmCard)
-        val tvTime:     TextView     = view.findViewById(R.id.tvTime)
-        val tvLabel:    TextView     = view.findViewById(R.id.tvLabel)
-        val tvDays:     TextView     = view.findViewById(R.id.tvDays)
-        val tvType:     TextView     = view.findViewById(R.id.tvType)
-        val tvLockInfo: TextView     = view.findViewById(R.id.tvLockInfo)
-        val toggle:     Switch       = view.findViewById(R.id.switchEnabled)
-        val btnDelete:  ImageButton  = view.findViewById(R.id.btnDelete)
+        val card:       View        = view.findViewById(R.id.alarmCard)
+        val tvTime:     TextView    = view.findViewById(R.id.tvTime)
+        val tvLabel:    TextView    = view.findViewById(R.id.tvLabel)
+        val tvDays:     TextView    = view.findViewById(R.id.tvDays)
+        val tvType:     TextView    = view.findViewById(R.id.tvType)
+        val tvLockInfo: TextView    = view.findViewById(R.id.tvLockInfo)
+        val toggle:     Switch      = view.findViewById(R.id.switchEnabled)
+        val btnDelete:  ImageButton = view.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlarmViewHolder {
@@ -152,23 +162,23 @@ class AlarmAdapter(
         holder.tvDays.text  = alarm.daysLabel()
 
         if (alarm.isPrimary) {
-            holder.tvType.visibility    = View.VISIBLE
+            holder.tvType.visibility     = View.VISIBLE
             holder.tvLockInfo.visibility = View.VISIBLE
-            holder.tvType.text          = "PRIMARY"
-            holder.tvLockInfo.text      = "🔒 Locks for ${alarm.lockDurationMinutes} min on stop"
+            holder.tvType.text           = "PRIMARY"
+            holder.tvLockInfo.text       = "🔒 Locks for ${alarm.lockDurationMinutes} min on stop"
             holder.card.setBackgroundResource(R.drawable.bg_card_primary)
             holder.tvTime.setTextColor(ctx.getColor(R.color.orange_primary))
         } else {
-            holder.tvType.visibility    = View.GONE
+            holder.tvType.visibility     = View.GONE
             holder.tvLockInfo.visibility = View.GONE
             holder.card.setBackgroundResource(R.drawable.bg_card_normal)
             holder.tvTime.setTextColor(ctx.getColor(R.color.text_primary))
         }
 
+        // Prevent toggle listener firing during bind
+        holder.toggle.setOnCheckedChangeListener(null)
         holder.toggle.isChecked = alarm.isEnabled
-        holder.toggle.setOnCheckedChangeListener { _, checked ->
-            onToggle(alarm, checked)
-        }
+        holder.toggle.setOnCheckedChangeListener { _, checked -> onToggle(alarm, checked) }
 
         holder.itemView.setOnClickListener { onEdit(alarm) }
         holder.btnDelete.setOnClickListener { onDelete(alarm) }
