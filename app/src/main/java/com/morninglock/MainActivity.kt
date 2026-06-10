@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,10 +32,12 @@ class MainActivity : AppCompatActivity() {
 
         db = AppDatabase.getInstance(this)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerAlarms)
-        val fab          = findViewById<FloatingActionButton>(R.id.fabAddAlarm)
-        tvGreeting       = findViewById(R.id.tvGreeting)
-        tvPermWarning    = findViewById(R.id.tvPermWarning)
+        val recyclerView   = findViewById<RecyclerView>(R.id.recyclerAlarms)
+        val fab            = findViewById<FloatingActionButton>(R.id.fabAddAlarm)
+        val btnSettings    = findViewById<ImageButton>(R.id.btnSettings)
+        val layoutEmpty    = findViewById<View>(R.id.layoutEmpty)
+        tvGreeting         = findViewById(R.id.tvGreeting)
+        tvPermWarning      = findViewById(R.id.tvPermWarning)
 
         setGreeting()
 
@@ -66,13 +69,16 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             db.alarmDao().getAllAlarms().collectLatest { alarms ->
                 adapter.submitList(alarms)
-                findViewById<TextView>(R.id.tvEmpty).visibility =
-                    if (alarms.isEmpty()) View.VISIBLE else View.GONE
+                layoutEmpty.visibility = if (alarms.isEmpty()) View.VISIBLE else View.GONE
             }
         }
 
         fab.setOnClickListener {
             startActivity(Intent(this, EditAlarmActivity::class.java))
+        }
+
+        btnSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
@@ -93,7 +99,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions() {
-        val usageOk  = hasUsageStatsPermission()
+        val usageOk   = hasUsageStatsPermission()
         val overlayOk = Settings.canDrawOverlays(this)
 
         if (!usageOk || !overlayOk) {
@@ -143,7 +149,7 @@ class AlarmAdapter(
         val tvDays:     TextView    = view.findViewById(R.id.tvDays)
         val tvType:     TextView    = view.findViewById(R.id.tvType)
         val tvLockInfo: TextView    = view.findViewById(R.id.tvLockInfo)
-        val toggle:     Switch      = view.findViewById(R.id.switchEnabled)
+        val toggle:     SwitchCompat = view.findViewById(R.id.switchEnabled)
         val btnDelete:  ImageButton = view.findViewById(R.id.btnDelete)
     }
 
@@ -165,7 +171,7 @@ class AlarmAdapter(
             holder.tvType.visibility     = View.VISIBLE
             holder.tvLockInfo.visibility = View.VISIBLE
             holder.tvType.text           = "PRIMARY"
-            holder.tvLockInfo.text       = "🔒 Locks for ${alarm.lockDurationMinutes} min on stop"
+            holder.tvLockInfo.text       = "Locks for ${alarm.lockDurationMinutes} min on stop"
             holder.card.setBackgroundResource(R.drawable.bg_card_primary)
             holder.tvTime.setTextColor(ctx.getColor(R.color.orange_primary))
         } else {
@@ -175,7 +181,6 @@ class AlarmAdapter(
             holder.tvTime.setTextColor(ctx.getColor(R.color.text_primary))
         }
 
-        // Prevent toggle listener firing during bind
         holder.toggle.setOnCheckedChangeListener(null)
         holder.toggle.isChecked = alarm.isEnabled
         holder.toggle.setOnCheckedChangeListener { _, checked -> onToggle(alarm, checked) }

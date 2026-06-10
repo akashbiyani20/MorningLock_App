@@ -11,38 +11,55 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Header -->
+        <!-- Header: greeting left, settings right -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:paddingHorizontal="24dp"
             android:paddingTop="52dp"
             android:paddingBottom="20dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="MorningLock"
-                android:textSize="26sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:fontFamily="@font/inter" />
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <!-- Time-based greeting replaces second "MorningLock" -->
-            <TextView
-                android:id="@+id/tvGreeting"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Good morning, Akash ☀️"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:fontFamily="@font/inter"
-                android:layout_marginTop="3dp" />
+                <TextView
+                    android:id="@+id/tvGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Good morning, Akash"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/inter_bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Your alarms"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="@font/inter"
+                    android:layout_marginTop="2dp"/>
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnSettings"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_settings"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Settings"
+                android:padding="10dp"/>
 
         </LinearLayout>
 
-        <!-- Permission warning -->
+        <!-- Permission warning — only visible when needed -->
         <TextView
             android:id="@+id/tvPermWarning"
             android:layout_width="match_parent"
@@ -53,7 +70,7 @@
             android:textColor="#AAFF44"
             android:fontFamily="@font/inter"
             android:textSize="13sp"
-            android:visibility="gone" />
+            android:visibility="gone"/>
 
         <!-- Alarm list -->
         <androidx.recyclerview.widget.RecyclerView
@@ -63,22 +80,47 @@
             android:layout_weight="1"
             android:paddingHorizontal="16dp"
             android:paddingTop="8dp"
-            android:paddingBottom="80dp"
-            android:clipToPadding="false" />
+            android:paddingBottom="88dp"
+            android:clipToPadding="false"/>
 
         <!-- Empty state -->
-        <TextView
-            android:id="@+id/tvEmpty"
+        <LinearLayout
+            android:id="@+id/layoutEmpty"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="No alarms yet.\nTap + to add your first one."
-            android:textColor="@color/text_secondary"
-            android:fontFamily="@font/inter"
-            android:textSize="15sp"
-            android:lineSpacingExtra="6dp"
-            android:visibility="gone" />
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏰"
+                android:textSize="48sp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:id="@+id/tvEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="No alarms yet"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter_bold"
+                android:textSize="17sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Tap + to add your first one"
+                android:textColor="@color/text_hint"
+                android:fontFamily="@font/inter"
+                android:textSize="13sp"
+                android:layout_marginTop="6dp"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -92,6 +134,6 @@
         android:contentDescription="Add alarm"
         android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/orange_primary"
-        app:tint="@android:color/white" />
+        app:tint="@android:color/white"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

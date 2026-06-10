@@ -14,13 +14,14 @@
         android:gravity="center_vertical"
         android:background="@drawable/bg_card_normal">
 
-        <!-- Left: time + label -->
+        <!-- Left: time + label + days -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- PRIMARY pill badge -->
             <TextView
                 android:id="@+id/tvType"
                 android:layout_width="wrap_content"
@@ -30,50 +31,68 @@
                 android:textColor="@color/orange_primary"
                 android:textStyle="bold"
                 android:fontFamily="@font/inter"
-                android:letterSpacing="0.15"
-                android:layout_marginBottom="2dp"
-                android:visibility="gone" />
+                android:letterSpacing="0.12"
+                android:layout_marginBottom="4dp"
+                android:visibility="gone"
+                android:background="@drawable/bg_pill_orange"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"/>
 
             <TextView
                 android:id="@+id/tvTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="8:00 AM"
-                android:textSize="38sp"
+                android:textSize="42sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/inter"
-                android:textColor="@color/text_primary" />
+                android:fontFamily="@font/inter_bold"
+                android:textColor="@color/text_primary"
+                android:includeFontPadding="false"/>
 
-            <TextView
-                android:id="@+id/tvLabel"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Wake Up"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:fontFamily="@font/inter"
-                android:layout_marginTop="2dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
 
-            <TextView
-                android:id="@+id/tvDays"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Every day"
-                android:textSize="12sp"
-                android:textColor="@color/text_hint"
-                android:fontFamily="@font/inter"
-                android:layout_marginTop="2dp" />
+                <TextView
+                    android:id="@+id/tvLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wake Up"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="@font/inter"/>
+
+                <View
+                    android:id="@+id/dotSeparator"
+                    android:layout_width="3dp"
+                    android:layout_height="3dp"
+                    android:layout_marginHorizontal="6dp"
+                    android:background="@color/text_hint"/>
+
+                <TextView
+                    android:id="@+id/tvDays"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Every day"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="@font/inter"/>
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvLockInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔒 Locks for 30 min on stop"
+                android:text="Locks for 30 min on stop"
                 android:textSize="12sp"
-                android:textColor="@color/orange_muted"
+                android:textColor="@color/orange_primary"
                 android:fontFamily="@font/inter"
                 android:layout_marginTop="6dp"
-                android:visibility="gone" />
+                android:visibility="gone"/>
 
         </LinearLayout>
 
@@ -83,23 +102,22 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginStart="12dp">
+            android:layout_marginStart="16dp">
 
-            <Switch
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switchEnabled"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"/>
 
-            <!-- Modern delete icon: X in a circle -->
             <ImageButton
                 android:id="@+id/btnDelete"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:src="@drawable/ic_delete_modern"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="12dp"
                 android:contentDescription="Delete alarm"
-                android:padding="6dp" />
+                android:padding="6dp"/>
 
         </LinearLayout>
 

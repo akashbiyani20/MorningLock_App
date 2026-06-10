@@ -8,6 +8,7 @@ import android.os.*
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -22,8 +23,8 @@ class EditAlarmActivity : AppCompatActivity() {
 
     private lateinit var tvTime:         TextView
     private lateinit var etLabel:        EditText
-    private lateinit var switchPrimary:  Switch
-    private lateinit var switchVibrate:  Switch
+    private lateinit var switchPrimary:  SwitchCompat
+    private lateinit var switchVibrate:  SwitchCompat
     private lateinit var tvRingtone:     TextView
     private lateinit var lockSection:    LinearLayout
     private lateinit var seekLock:       SeekBar
@@ -60,7 +61,6 @@ class EditAlarmActivity : AppCompatActivity() {
         tvPrimaryNote  = findViewById(R.id.tvPrimaryNote)
         tvTimeUntil    = findViewById(R.id.tvTimeUntil)
 
-        // Slider: 0 = 30 min, 90 = 120 min (1 step = 1 minute, haptic each step)
         seekLock.max = 90
         seekLock.progress = 0
         lastSliderProgress = 0
@@ -87,7 +87,6 @@ class EditAlarmActivity : AppCompatActivity() {
 
         tvTime.setOnClickListener { showTimePicker() }
 
-        // Ringtone row click
         findViewById<View>(R.id.ringtoneRow).setOnClickListener {
             val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                 putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
@@ -152,7 +151,6 @@ class EditAlarmActivity : AppCompatActivity() {
             selectedMinute = minute
             updateTimeDisplay()
             updateTimeUntil()
-            // Small haptic on time selection
             vibrator?.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
         }, selectedHour, selectedMinute, false).show()
     }
@@ -189,7 +187,6 @@ class EditAlarmActivity : AppCompatActivity() {
     }
 
     private fun saveAlarm() {
-        // Read slider value directly — this was the bug causing 30min always
         val finalLockDuration = 30 + seekLock.progress
 
         val alarm = Alarm(
@@ -216,7 +213,6 @@ class EditAlarmActivity : AppCompatActivity() {
                 AlarmScheduler.cancel(this@EditAlarmActivity, alarm)
                 AlarmScheduler.schedule(this@EditAlarmActivity, alarm)
             }
-            // Haptic on save
             vibrator?.vibrate(VibrationEffect.createOneShot(60, VibrationEffect.DEFAULT_AMPLITUDE))
             finish()
         }

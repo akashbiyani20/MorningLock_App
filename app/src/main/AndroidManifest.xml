@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".MorningLockApp"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="MorningLock"
@@ -23,7 +24,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MorningLock">
 
-        <!-- Main screen -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,7 +34,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Alarm ringing screen -->
         <activity
             android:name=".AlarmRingActivity"
             android:exported="false"
@@ -43,7 +42,6 @@
             android:launchMode="singleTop"
             android:excludeFromRecents="true" />
 
-        <!-- Lock screen overlay -->
         <activity
             android:name=".LockActivity"
             android:exported="false"
@@ -52,13 +50,17 @@
             android:launchMode="singleTask"
             android:excludeFromRecents="true" />
 
-        <!-- Add / Edit alarm screen -->
         <activity
             android:name=".EditAlarmActivity"
             android:exported="false"
+            android:theme="@style/Theme.MorningLock.WithBar"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Fires alarms -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MorningLock.WithBar" />
+
         <receiver
             android:name=".AlarmReceiver"
             android:exported="true">
@@ -67,7 +69,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Reschedule on boot -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
@@ -76,13 +77,11 @@
             </intent-filter>
         </receiver>
 
-        <!-- Lock enforcement service -->
         <service
             android:name=".LockService"
             android:exported="false"
             android:foregroundServiceType="specialUse" />
 
-        <!-- Alarm sound service -->
         <service
             android:name=".AlarmService"
             android:exported="false"

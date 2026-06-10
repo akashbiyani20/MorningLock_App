@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 8-tooth gear with hollow center, dark charcoal on orange background -->
+    <path
+        android:fillColor="#1A1A1A"
+        android:fillType="evenOdd"
+        android:pathData="M49.21,25.38 L49.37,16.27 A38,38 0 0,1 58.63,16.27 L58.79,25.38 A29,29 0 0,1 70.84,30.37 L77.40,24.06 A38,38 0 0,1 83.94,30.60 L77.63,37.16 A29,29 0 0,1 82.62,49.21 L91.73,49.37 A38,38 0 0,1 91.73,58.63 L82.62,58.79 A29,29 0 0,1 77.63,70.84 L83.94,77.40 A38,38 0 0,1 77.40,83.94 L70.84,77.63 A29,29 0 0,1 58.79,82.62 L58.63,91.73 A38,38 0 0,1 49.37,91.73 L49.21,82.62 A29,29 0 0,1 37.16,77.63 L30.60,83.94 A38,38 0 0,1 24.06,77.40 L30.37,70.84 A29,29 0 0,1 25.38,58.79 L16.27,58.63 A38,38 0 0,1 16.27,49.37 L25.38,49.21 A29,29 0 0,1 30.37,37.16 L24.06,30.60 A38,38 0 0,1 30.60,24.06 L37.16,30.37 A29,29 0 0,1 49.21,25.38 Z M54,38 A16,16 0 0,1 54,70 A16,16 0 0,1 54,38 Z"/>
+
+    <!-- White crescent moon visible through gear hole -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,41 A13,13 0 0,1 54,67 A13,13 0 0,1 54,41 Z"/>
+
+    <!-- Orange bite (matches background) creates crescent shape -->
+    <path
+        android:fillColor="#FF6B35"
+        android:pathData="M60,38 A10,10 0 0,1 60,58 A10,10 0 0,1 60,38 Z"/>
+
+</vector>
