@@ -17,13 +17,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var db: AppDatabase
     private lateinit var adapter: AlarmAdapter
-    private lateinit var tvGreeting: TextView
     private lateinit var tvPermWarning: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,14 +30,11 @@ class MainActivity : AppCompatActivity() {
 
         db = AppDatabase.getInstance(this)
 
-        val recyclerView   = findViewById<RecyclerView>(R.id.recyclerAlarms)
-        val fab            = findViewById<FloatingActionButton>(R.id.fabAddAlarm)
-        val btnSettings    = findViewById<ImageButton>(R.id.btnSettings)
-        val layoutEmpty    = findViewById<View>(R.id.layoutEmpty)
-        tvGreeting         = findViewById(R.id.tvGreeting)
-        tvPermWarning      = findViewById(R.id.tvPermWarning)
-
-        setGreeting()
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerAlarms)
+        val fab          = findViewById<FloatingActionButton>(R.id.fabAddAlarm)
+        val btnSettings  = findViewById<ImageButton>(R.id.btnSettings)
+        val layoutEmpty  = findViewById<View>(R.id.layoutEmpty)
+        tvPermWarning    = findViewById(R.id.tvPermWarning)
 
         adapter = AlarmAdapter(
             onToggle = { alarm, enabled ->
@@ -84,18 +79,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        setGreeting()
         checkPermissions()
-    }
-
-    private fun setGreeting() {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        tvGreeting.text = when (hour) {
-            in 4..11  -> "Good morning, Akash ☀️"
-            in 12..16 -> "Coffee time, Akash ☕"
-            in 17..20 -> "Good evening, Akash 🌆"
-            else      -> "Night owl mode, Akash 🌙"
-        }
     }
 
     private fun checkPermissions() {
@@ -127,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-// ─── RecyclerView Adapter ─────────────────────────────────────────────────────
+// ─── Adapter ──────────────────────────────────────────────────────────────────
 
 class AlarmAdapter(
     private val onToggle: (Alarm, Boolean) -> Unit,
@@ -143,14 +127,14 @@ class AlarmAdapter(
     }
 
     inner class AlarmViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val card:       View        = view.findViewById(R.id.alarmCard)
-        val tvTime:     TextView    = view.findViewById(R.id.tvTime)
-        val tvLabel:    TextView    = view.findViewById(R.id.tvLabel)
-        val tvDays:     TextView    = view.findViewById(R.id.tvDays)
-        val tvType:     TextView    = view.findViewById(R.id.tvType)
-        val tvLockInfo: TextView    = view.findViewById(R.id.tvLockInfo)
+        val card:       View         = view.findViewById(R.id.alarmCard)
+        val tvTime:     TextView     = view.findViewById(R.id.tvTime)
+        val tvLabel:    TextView     = view.findViewById(R.id.tvLabel)
+        val tvDays:     TextView     = view.findViewById(R.id.tvDays)
+        val tvType:     TextView     = view.findViewById(R.id.tvType)
+        val tvLockInfo: TextView     = view.findViewById(R.id.tvLockInfo)
         val toggle:     SwitchCompat = view.findViewById(R.id.switchEnabled)
-        val btnDelete:  ImageButton = view.findViewById(R.id.btnDelete)
+        val btnDelete:  ImageButton  = view.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlarmViewHolder {
