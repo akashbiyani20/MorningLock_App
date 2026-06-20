@@ -1,173 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/lockRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark">
+    android:background="#000000">
 
-    <!-- ════════════ FULL LOCK UI ════════════ -->
+    <!-- The only thing on screen: a big countdown that bounces around. -->
+    <TextView
+        android:id="@+id/tvTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:text="0:00:00"
+        android:textSize="60sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:fontFamily="monospace"
+        android:maxLines="1"
+        android:includeFontPadding="false" />
+
+    <!-- Completion / congrats screen (shown when the lock finishes). -->
     <LinearLayout
-        android:id="@+id/lockContent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="36dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔒"
-            android:textSize="56sp"
-            android:layout_marginBottom="20dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Morning Lock"
-            android:textSize="28sp"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Rotating motivational quote -->
-        <TextView
-            android:id="@+id/tvQuote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="15sp"
-            android:textColor="@color/text_secondary"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:lineSpacingExtra="5dp"
-            android:fontFeatureSettings="normal"
-            android:textStyle="italic"
-            android:layout_marginBottom="40dp"
-            android:paddingHorizontal="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TIME REMAINING"
-            android:textSize="10sp"
-            android:textColor="@color/orange_primary"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter"
-            android:letterSpacing="0.2"
-            android:layout_marginBottom="6dp" />
-
-        <TextView
-            android:id="@+id/tvTimer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="30:00"
-            android:textSize="72sp"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            android:fontFamily="monospace"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:id="@+id/tvUnlockTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Unlocks at 9:00 AM"
-            android:textSize="13sp"
-            android:textColor="@color/text_hint"
-            android:fontFamily="@font/inter"
-            android:layout_marginBottom="32dp" />
-
-        <!-- Extend +10 min -->
-        <Button
-            android:id="@+id/btnExtend"
-            android:layout_width="160dp"
-            android:layout_height="40dp"
-            android:text="+ 10 min"
-            android:textSize="13sp"
-            android:textColor="@color/text_hint"
-            android:fontFamily="@font/inter"
-            android:backgroundTint="#1A1A1A"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Dim / Always-on hint -->
-        <TextView
-            android:id="@+id/tvDimHint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tap the moon to dim · saves battery"
-            android:textSize="11sp"
-            android:textColor="@color/text_hint"
-            android:fontFamily="@font/inter"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btnDim"
-            android:layout_width="160dp"
-            android:layout_height="40dp"
-            android:text="🌙  Dim screen"
-            android:textSize="13sp"
-            android:textColor="@color/text_hint"
-            android:fontFamily="@font/inter"
-            android:backgroundTint="#1A1A1A"
-            android:layout_marginBottom="28dp" />
-
-        <View
-            android:layout_width="48dp"
-            android:layout_height="1dp"
-            android:background="#1E1E1E"
-            android:layout_marginBottom="28dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Need to make a call?"
-            android:textSize="12sp"
-            android:textColor="@color/text_hint"
-            android:fontFamily="@font/inter"
-            android:gravity="center"
-            android:layout_marginBottom="10dp" />
-
-        <Button
-            android:id="@+id/btnCall"
-            android:layout_width="180dp"
-            android:layout_height="48dp"
-            android:text="📞  Open Dialer"
-            android:textSize="13sp"
-            android:fontFamily="@font/inter"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#0D2B0D" />
-
-    </LinearLayout>
-
-    <!-- ════════════ ALWAYS-ON DIM OVERLAY (pure black, low power) ════════════ -->
-    <LinearLayout
-        android:id="@+id/dimOverlay"
+        android:id="@+id/completionOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
         android:background="#000000"
+        android:padding="36dp"
         android:visibility="gone">
 
         <TextView
-            android:id="@+id/tvDimTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="30:00"
-            android:textSize="56sp"
-            android:textColor="#3A3A3A"
-            android:fontFamily="monospace" />
+            android:text="🎉"
+            android:textSize="72sp"
+            android:layout_marginBottom="24dp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="locked · tap to wake"
-            android:textSize="12sp"
-            android:textColor="#262626"
+            android:text="Time's up!"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/inter_bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvCompletionMsg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="You stayed off your phone."
+            android:textSize="16sp"
             android:fontFamily="@font/inter"
-            android:layout_marginTop="12dp" />
+            android:textColor="#AAAAAA"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="48dp" />
+
+        <Button
+            android:id="@+id/btnDone"
+            android:layout_width="200dp"
+            android:layout_height="56dp"
+            android:text="DONE"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/inter"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="@color/orange_primary" />
 
     </LinearLayout>
 

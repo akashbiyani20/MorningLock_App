@@ -15,6 +15,7 @@ class LockService : Service() {
         const val CHANNEL_ID = "lock_channel"
         var isRunning = false
         var lockEndTime: Long = 0L
+        var lockTotalMinutes: Int = 0   // duration this session was started with
 
         // Whitelisted always (system + dialer)
         val WHITELIST_ALWAYS = setOf(
@@ -95,6 +96,7 @@ class LockService : Service() {
         Log.d("MorningLock", "Starting lock for $durationMinutes minutes")
 
         isRunning = true
+        lockTotalMinutes = durationMinutes
         lockEndTime = System.currentTimeMillis() + (durationMinutes * 60 * 1000L)
 
         startForeground(1, buildNotification())

@@ -1,6 +1,5 @@
 package com.morninglock
 
-import android.content.Intent
 import android.os.*
 import android.view.MotionEvent
 import android.view.View
@@ -8,67 +7,87 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import java.util.Calendar
-import java.util.concurrent.TimeUnit
 
 class LockActivity : AppCompatActivity() {
 
+    private lateinit var lockRoot: View
     private lateinit var tvTimer: TextView
-    private lateinit var tvUnlockTime: TextView
-    private lateinit var tvQuote: TextView
-    private lateinit var btnExtend: Button
-    private lateinit var lockContent: View
-    private lateinit var dimOverlay: View
-    private lateinit var tvDimTimer: TextView
+    private lateinit var completionOverlay: View
+    private lateinit var tvCompletionMsg: TextView
+
     private val handler = Handler(Looper.getMainLooper())
 
+    // Bounce state
+    private var posX = 0f
+    private var posY = 0f
+    private var velX = 0f
+    private var velY = 0f
+    private var colorIndex = 0
+
+    // Countdown state
+    private var lastSecShown = -1
+    private var isFinished = false
     private var isDimmed = false
-    private val autoDimRunnable = Runnable { enterDim() }
 
-    // Extend broadcasts to LockService via companion
+    private val vibrator: Vibrator? by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION") getSystemService(VIBRATOR_SERVICE) as? Vibrator
+        }
+    }
+
     companion object {
-        const val ACTION_EXTEND = "com.morninglock.ACTION_EXTEND"
-        const val EXTEND_MINUTES = 10
-
-        // Always-on dim: idle delay before auto-dimming, and the dimmed brightness.
         const val AUTO_DIM_DELAY_MS = 12_000L
         const val DIM_BRIGHTNESS = 0.02f
+        const val TICK_MS = 250L
+        const val FRAME_MS = 16L
 
-        val QUOTES = listOf(
-            "The morning is the rudder of the day.",
-            "Win the morning, win the day.",
-            "Discipline is choosing between what you want now and what you want most.",
-            "Your future self is watching you right now through memories.",
-            "One hour of focused work beats three hours of distracted scrolling.",
-            "A calm morning is a productive day.",
-            "The phone can wait. Your mind cannot.",
-            "Stillness is where clarity is born.",
-            "Great things never come from comfort zones.",
-            "Be present. The feed will still be there later.",
-            "Every morning you have a choice. Choose intentionally.",
-            "The most successful people protect their mornings.",
-            "Your attention is your most valuable asset. Guard it.",
-            "Digital detox begins with a single locked screen.",
-            "Mindfulness isn't about the phone — it's about the moment.",
-            "You don't need to check. Nothing is as urgent as it feels.",
-            "Start strong. The morning shapes the rest.",
-            "Breathe. Ground yourself. The world can wait 45 minutes.",
-            "Focus is a superpower in a distracted world.",
-            "Small morning habits create massive life changes."
+        // Colors the timer cycles through on each wall bounce (the "fun" factor).
+        val BOUNCE_COLORS = intArrayOf(
+            0xFFFFFFFF.toInt(), // white
+            0xFFFF6B35.toInt(), // orange
+            0xFF36D1C4.toInt(), // teal
+            0xFFFFD23F.toInt(), // yellow
+            0xFFFF6FB5.toInt()  // pink
         )
     }
 
-    private val timerRunnable = object : Runnable {
+    private val tickRunnable = object : Runnable {
         override fun run() {
+            if (isFinished) return
+            val remaining = LockService.lockEndTime - System.currentTimeMillis()
+
+            if (remaining <= 0) {
+                showCompletion()
+                return
+            }
+            // Lock ended early / was cancelled for some other reason — just leave.
             if (!LockService.isRunning) {
                 finish()
                 return
             }
-            updateCountdown()
-            updateUnlockTime()
-            handler.postDelayed(this, 1000)
+
+            val secLeft = (remaining / 1000).toInt()
+            tvTimer.text = formatCountdown(secLeft)
+
+            if (secLeft != lastSecShown) {
+                lastSecShown = secLeft
+                if (secLeft in 1..3) vibrateTick()   // 3 … 2 … 1 buzz
+            }
+            handler.postDelayed(this, TICK_MS)
         }
     }
+
+    private val bounceRunnable = object : Runnable {
+        override fun run() {
+            if (isFinished) return
+            stepBounce()
+            handler.postDelayed(this, FRAME_MS)
+        }
+    }
+
+    private val autoDimRunnable = Runnable { enterDim() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,60 +100,100 @@ class LockActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_lock)
 
-        tvTimer      = findViewById(R.id.tvTimer)
-        tvUnlockTime = findViewById(R.id.tvUnlockTime)
-        tvQuote      = findViewById(R.id.tvQuote)
-        val btnCall  = findViewById<Button>(R.id.btnCall)
-        btnExtend    = findViewById(R.id.btnExtend)
-        lockContent  = findViewById(R.id.lockContent)
-        dimOverlay   = findViewById(R.id.dimOverlay)
-        tvDimTimer   = findViewById(R.id.tvDimTimer)
-        val btnDim   = findViewById<Button>(R.id.btnDim)
+        lockRoot          = findViewById(R.id.lockRoot)
+        tvTimer           = findViewById(R.id.tvTimer)
+        completionOverlay = findViewById(R.id.completionOverlay)
+        tvCompletionMsg   = findViewById(R.id.tvCompletionMsg)
+        findViewById<Button>(R.id.btnDone).setOnClickListener { finish() }
 
-        // Pick a random quote from the list
-        tvQuote.text = QUOTES.random()
-
-        updateUnlockTime()
-
-        btnCall.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_DIAL))
-        }
-
-        btnDim.setOnClickListener { enterDim() }
-
-        scheduleAutoDim()
-
-        btnExtend.setOnClickListener {
-            // Add 10 minutes to lock end time
-            LockService.lockEndTime += EXTEND_MINUTES * 60 * 1000L
-            updateUnlockTime()
-            // Brief haptic feedback
-            val vib = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                (getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
-            } else {
-                @Suppress("DEPRECATION") getSystemService(VIBRATOR_SERVICE) as Vibrator
-            }
-            vib.vibrate(VibrationEffect.createOneShot(60, VibrationEffect.DEFAULT_AMPLITUDE))
-            btnExtend.text = "+10 min added ✓"
-            handler.postDelayed({ btnExtend.text = "+ 10 min" }, 1500)
-        }
-
-        handler.post(timerRunnable)
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        updateUnlockTime()
-    }
-
-    private fun updateCountdown() {
+        // Initial value so it doesn't flash 0:00:00.
         val remaining = (LockService.lockEndTime - System.currentTimeMillis()).coerceAtLeast(0)
-        val mins = TimeUnit.MILLISECONDS.toMinutes(remaining)
-        val secs = TimeUnit.MILLISECONDS.toSeconds(remaining) % 60
-        val text = "%d:%02d".format(mins, secs)
-        tvTimer.text = text
-        tvDimTimer.text = text
+        tvTimer.text = formatCountdown((remaining / 1000).toInt())
+
+        handler.post(tickRunnable)
+        lockRoot.post { setupBounce() }
+        scheduleAutoDim()
     }
+
+    // ─── Bouncing countdown ──────────────────────────────────────────────────
+
+    private fun setupBounce() {
+        posX = (lockRoot.width - tvTimer.width) / 2f
+        posY = (lockRoot.height - tvTimer.height) / 2f
+        tvTimer.translationX = posX
+        tvTimer.translationY = posY
+
+        val speed = 2.2f * resources.displayMetrics.density
+        velX = speed
+        velY = speed
+        handler.post(bounceRunnable)
+    }
+
+    private fun stepBounce() {
+        val maxX = (lockRoot.width - tvTimer.width).toFloat()
+        val maxY = (lockRoot.height - tvTimer.height).toFloat()
+        if (maxX <= 0f || maxY <= 0f) return
+
+        var bounced = false
+        posX += velX
+        posY += velY
+
+        if (posX <= 0f)      { posX = 0f;    velX = -velX; bounced = true }
+        else if (posX >= maxX) { posX = maxX; velX = -velX; bounced = true }
+        if (posY <= 0f)      { posY = 0f;    velY = -velY; bounced = true }
+        else if (posY >= maxY) { posY = maxY; velY = -velY; bounced = true }
+
+        if (bounced) {
+            colorIndex = (colorIndex + 1) % BOUNCE_COLORS.size
+            tvTimer.setTextColor(BOUNCE_COLORS[colorIndex])
+        }
+
+        tvTimer.translationX = posX
+        tvTimer.translationY = posY
+    }
+
+    private fun formatCountdown(totalSec: Int): String {
+        val s = totalSec.coerceAtLeast(0)
+        val h = s / 3600
+        val m = (s % 3600) / 60
+        val sec = s % 60
+        return "%d:%02d:%02d".format(h, m, sec)
+    }
+
+    private fun vibrateTick() {
+        vibrator?.vibrate(VibrationEffect.createOneShot(180, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    // ─── Completion ──────────────────────────────────────────────────────────
+
+    private fun showCompletion() {
+        if (isFinished) return
+        isFinished = true
+        handler.removeCallbacks(tickRunnable)
+        handler.removeCallbacks(bounceRunnable)
+        handler.removeCallbacks(autoDimRunnable)
+
+        // Make sure the screen is at full brightness for the celebration.
+        window.attributes = window.attributes.apply {
+            screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
+        isDimmed = false
+
+        tvTimer.visibility = View.GONE
+        tvCompletionMsg.text = "You stayed off your phone for ${formatDuration(LockService.lockTotalMinutes)}.\nNice work. 💪"
+        completionOverlay.visibility = View.VISIBLE
+
+        // Celebratory finish pattern.
+        vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 120, 80, 120, 80, 350), -1))
+    }
+
+    private fun formatDuration(minutes: Int): String =
+        if (minutes < 60) "$minutes min"
+        else {
+            val h = minutes / 60
+            val m = minutes % 60
+            if (m == 0) "${h}h" else "${h}h ${m}m"
+        }
 
     // ─── Always-on dim mode ──────────────────────────────────────────────────
 
@@ -144,18 +203,13 @@ class LockActivity : AppCompatActivity() {
     }
 
     private fun enterDim() {
-        if (isDimmed) return
+        if (isDimmed || isFinished) return
         isDimmed = true
-        handler.removeCallbacks(autoDimRunnable)
-        lockContent.visibility = View.GONE
-        dimOverlay.visibility = View.VISIBLE
         window.attributes = window.attributes.apply { screenBrightness = DIM_BRIGHTNESS }
     }
 
     private fun exitDim() {
         isDimmed = false
-        dimOverlay.visibility = View.GONE
-        lockContent.visibility = View.VISIBLE
         window.attributes = window.attributes.apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         }
@@ -163,30 +217,17 @@ class LockActivity : AppCompatActivity() {
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            if (isDimmed) {
-                // First tap only wakes the screen — don't pass through to the UI.
-                exitDim()
-                return true
-            }
-            // Any interaction resets the idle-dim timer.
+        if (ev.action == MotionEvent.ACTION_DOWN && !isFinished) {
+            if (isDimmed) { exitDim(); return true }
             scheduleAutoDim()
         }
         return super.dispatchTouchEvent(ev)
     }
 
-    private fun updateUnlockTime() {
-        val cal = Calendar.getInstance().apply { timeInMillis = LockService.lockEndTime }
-        val h = cal.get(Calendar.HOUR_OF_DAY)
-        val m = cal.get(Calendar.MINUTE)
-        val amPm = if (h < 12) "AM" else "PM"
-        val displayH = if (h == 0) 12 else if (h > 12) h - 12 else h
-        tvUnlockTime.text = "Unlocks at %d:%02d %s".format(displayH, m, amPm)
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        handler.removeCallbacks(timerRunnable)
+        handler.removeCallbacks(tickRunnable)
+        handler.removeCallbacks(bounceRunnable)
         handler.removeCallbacks(autoDimRunnable)
     }
 
