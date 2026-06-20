@@ -12,10 +12,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
         android:text="0:00:00"
-        android:textSize="60sp"
+        android:textSize="72sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"
-        android:fontFamily="monospace"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing="-0.03"
         android:maxLines="1"
         android:includeFontPadding="false" />
 

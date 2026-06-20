@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_dark"
@@ -11,44 +12,60 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Big time display -->
-        <TextView
-            android:id="@+id/tvTime"
-            android:layout_width="wrap_content"
+        <!-- Time wheels (hour / minute / AM-PM) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="8:00 AM"
-            android:textSize="64sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter"
-            android:textColor="@color/text_primary"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/bg_card_normal"
+            android:paddingVertical="10dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp">
+
+            <NumberPicker
+                android:id="@+id/npHour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:theme="@style/WheelPicker" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/inter_bold"
+                android:textColor="@color/text_primary"
+                android:paddingHorizontal="4dp" />
+
+            <NumberPicker
+                android:id="@+id/npMinute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:theme="@style/WheelPicker" />
+
+            <NumberPicker
+                android:id="@+id/npAmPm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:theme="@style/WheelPicker" />
+
+        </LinearLayout>
 
         <!-- "Alarm in Xh Ym" -->
         <TextView
             android:id="@+id/tvTimeUntil"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
             android:textSize="13sp"
             android:textColor="@color/orange_primary"
             android:fontFamily="@font/inter"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:layout_marginBottom="28dp"
             android:visibility="gone" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tap to change time"
-            android:textSize="12sp"
-            android:textColor="@color/text_hint"
-            android:fontFamily="@font/inter"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="32dp" />
 
         <!-- Label section -->
         <TextView
@@ -114,7 +131,9 @@
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchPrimary"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:thumbTint="@color/switch_thumb_tint"
+                app:trackTint="@color/switch_track_tint"/>
 
         </LinearLayout>
 
@@ -169,48 +188,16 @@
 
             </LinearLayout>
 
-            <!-- Custom styled SeekBar -->
-            <SeekBar
-                android:id="@+id/seekLock"
+            <!-- Horizontal grain ruler — scroll to set the lock duration -->
+            <com.morninglock.GrainRuler
+                android:id="@+id/rulerLock"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="90"
-                android:progress="0"
-                android:progressTint="@color/orange_primary"
-                android:thumbTint="@color/orange_primary"
-                android:progressBackgroundTint="#333333"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="30 min"
-                    android:textSize="11sp"
-                    android:fontFamily="@font/inter"
-                    android:textColor="@color/text_hint" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="2 hours"
-                    android:textSize="11sp"
-                    android:fontFamily="@font/inter"
-                    android:textColor="@color/text_hint" />
-
-            </LinearLayout>
+                android:layout_height="96dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Slide slowly — you'll feel a haptic tick for each minute"
+                android:text="Scroll · 1 grain = 1 min · buzzes each step"
                 android:textSize="11sp"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_hint"
@@ -258,7 +245,9 @@
                 android:id="@+id/switchVibrate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="true"/>
+                android:checked="true"
+                app:thumbTint="@color/switch_thumb_tint"
+                app:trackTint="@color/switch_track_tint"/>
 
         </LinearLayout>
 
@@ -307,12 +296,13 @@
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:text="SAVE ALARM"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:fontFamily="@font/inter"
-            android:backgroundTint="@color/orange_primary"
+            android:fontFamily="@font/inter_bold"
+            android:letterSpacing="0.08"
+            android:background="@drawable/bg_btn_gradient"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="40dp" />
 

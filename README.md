@@ -6,7 +6,7 @@
 
 An Android alarm app that locks your phone the moment you wake up — so you start the day intentionally, not on Instagram.
 
-[![Version](https://img.shields.io/badge/version-1.2.0-FF6B35?style=flat-square)](https://github.com/yourusername/MorningLock/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-FF6B35?style=flat-square)](https://github.com/yourusername/MorningLock/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%209%2B-brightgreen?style=flat-square)](https://developer.android.com)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
@@ -18,11 +18,14 @@ An Android alarm app that locks your phone the moment you wake up — so you sta
 
 Most of us wake up and immediately reach for our phones. Notifications, Instagram, YouTube — before we've even had a glass of water. MorningLock fixes this.
 
-It works as a hybrid of two things:
+It works as a hybrid of three things:
 - **An alarm app** — set one or multiple alarms, choose ringtones and vibration
 - **A phone locker** — the moment you stop your *Primary Alarm*, your phone locks itself
+- **A Focus timer** — start a lockdown any time from the **Focus** tab, for anywhere from 1 minute to 12 hours
 
-For your chosen duration (30 min to 2 hours), only phone calls are available. Everything else is blocked. No Instagram. No YouTube. No doomscrolling while brushing your teeth.
+For your chosen duration, only phone calls are available. Everything else is blocked. No Instagram. No YouTube. No doomscrolling while brushing your teeth.
+
+The app has two tabs at the bottom: an **alarm-clock icon** (your alarms) and a **timer icon** (Focus mode).
 
 ---
 
@@ -36,7 +39,18 @@ Sideload instructions below.
 
 ## Features
 
-### v1.2 (Current)
+### v1.4 (Current)
+- ✅ **Focus mode** — new bottom tab. Start a phone lockdown any time, not just from an alarm.
+- ✅ **Scrollable grain picker** — set the lock/focus duration by scrolling a ruler of "grains" (1 grain = 1 minute), with a haptic buzz on every minute. Pick any exact time from **1 minute to 12 hours** (e.g. 1h 43m). Vertical in Focus, horizontal in the alarm editor.
+- ✅ **iPhone-style time wheels** — set the alarm's hour / minute / AM-PM with spinning wheels, with haptics.
+- ✅ **Minimalist lock screen** — just one big bouncing countdown (DVD-logo style), white digits with the **seconds in orange**, readable from across the room.
+- ✅ **3 · 2 · 1 finale + congrats screen** — the phone buzzes on the last three seconds, then a celebration screen shows how long you stayed off your phone.
+- ✅ **Always-on dim** — after ~10s of no touch the lock screen drops to a near-black, low-brightness state to save battery; tap to brighten. (See *Always-On & Battery* below.)
+- ✅ **Fresh Gen-Z look** — bolder numbers, gradient buttons, modern orange toggle, new trash icon.
+- ✅ **Works on any Android phone** — the lock auto-detects your device's launcher + dialer (not just Nothing/Samsung/Pixel).
+- ✅ **Hardened** — alarm receiver no longer publicly exported, backups off, Android 13/14 ready.
+
+### v1.2
 - ✅ **Smart alarm system** — Primary + regular alarms in one app
 - ✅ **Automatic morning lock** — stops Primary alarm → lock begins instantly. No confirmation screens.
 - ✅ **Custom lock duration** — slider from 30 min to 2 hours, with haptic tick per minute
@@ -120,10 +134,10 @@ Both are one-time. You'll never be asked again.
 ### Creating your Primary Alarm
 
 1. Tap the orange **+** button
-2. Tap the time display → set your wake-up time
+2. Scroll the **time wheels** to your wake-up time (hour / minute / AM-PM)
 3. See **"Alarm in Xh Ym"** — confirms your timing
 4. Toggle **Primary Alarm 🔒** ON
-5. Use the **slider** to set lock duration (feel haptic tick each minute)
+5. Scroll the **grain ruler** to set lock duration (buzzes each minute) — any time from 1 min to 12 h
 6. Set ringtone and vibration
 7. Tap **SAVE ALARM**
 
@@ -133,14 +147,28 @@ Your Primary alarm card shows with an **orange border** and the lock duration in
 
 Same steps, leave Primary Alarm toggle OFF. These ring normally and don't trigger any lockdown. Useful as backup alarms or reminders.
 
+### Starting a Focus session (no alarm needed)
+
+1. Tap the **timer icon** in the bottom bar
+2. Scroll the vertical **grain ruler** to your duration (1 min – 12 h) — you'll feel a buzz per minute
+3. Tap **START FOCUS** — your phone locks immediately
+
 ### During Lockdown
 
-The lock screen shows:
-- Live countdown timer
-- Unlock time ("Unlocks at 9:15 AM")
-- A rotating motivational quote (changes each session)
-- **+ 10 min** button to extend your focus session
-- **Open Dialer** button for calls
+The lock screen is deliberately minimal — just one big **bouncing countdown** that drifts around the screen (so it's easy to read from a distance and is gentle on OLED screens). The digits are white with the **seconds in orange**.
+
+- At **3 · 2 · 1**, the phone buzzes each second
+- When time's up, a **congrats screen** shows how long you stayed off your phone — tap **DONE**
+- Need to call someone? Press Home (your launcher stays available) and open your Phone app — calls are always allowed.
+
+### Always-On & Battery (the "dim" feature)
+
+After about **10 seconds without a touch**, the lock screen automatically drops to a **near-black, lowest-brightness state** with a faint, still-moving timer — this is the app saving battery. **Tap the screen** to brighten it back up.
+
+A couple of things worth knowing:
+- This is a *software* dim. **True hardware Always-On Display (AOD)** — where the screen is almost completely off — is controlled by your phone's manufacturer and **cannot be turned on by an app.**
+- You can always **press the power button** to turn the screen fully off. The lock keeps running in the background, and you can press power again any time to check the countdown.
+- So: you do **not** need to press power for it to dim (it dims on its own after ~10s), but pressing power is the most battery-efficient option if you're walking away.
 
 ---
 
@@ -167,10 +195,10 @@ Enable autostart:
 |---|---|
 | Alarm doesn't ring with screen off | Battery → MorningLock → Unrestricted |
 | Lock screen doesn't appear | Grant Overlay permission |
-| Lock duration still shows 30 min | Delete and recreate the alarm; pull slider past 30 before saving |
+| Lock duration wrong | Scroll the grain ruler so the value under the orange center line is what you want before saving |
 | WhatsApp call didn't come through | Ensure WhatsApp notifications are enabled in system settings |
 | Alarm disappeared after reboot | Open app once; boot receiver reschedules automatically |
-| +10 min button doesn't update time display | Known minor UI delay — timer updates within 1 second |
+| Lock screen stays bright | It dims itself after ~10s of no touch. For a full screen-off, press the power button (the lock keeps running). |
 
 ---
 

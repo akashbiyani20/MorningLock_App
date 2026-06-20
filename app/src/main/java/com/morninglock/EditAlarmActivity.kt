@@ -1,6 +1,5 @@
 package com.morninglock
 
-import android.app.TimePickerDialog
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
@@ -19,19 +18,20 @@ class EditAlarmActivity : AppCompatActivity() {
     private var selectedHour   = 8
     private var selectedMinute = 0
     private var selectedRingtoneUri = "default"
-    private var lastSliderProgress = 0
 
-    private lateinit var tvTime:         TextView
-    private lateinit var etLabel:        EditText
-    private lateinit var switchPrimary:  SwitchCompat
-    private lateinit var switchVibrate:  SwitchCompat
-    private lateinit var tvRingtone:     TextView
-    private lateinit var lockSection:    LinearLayout
-    private lateinit var seekLock:       SeekBar
-    private lateinit var tvLockDuration: TextView
-    private lateinit var btnSave:        Button
-    private lateinit var tvPrimaryNote:  TextView
-    private lateinit var tvTimeUntil:    TextView
+    private lateinit var npHour:        NumberPicker
+    private lateinit var npMinute:      NumberPicker
+    private lateinit var npAmPm:        NumberPicker
+    private lateinit var etLabel:       EditText
+    private lateinit var switchPrimary: SwitchCompat
+    private lateinit var switchVibrate: SwitchCompat
+    private lateinit var tvRingtone:    TextView
+    private lateinit var lockSection:   LinearLayout
+    private lateinit var rulerLock:     GrainRuler
+    private lateinit var tvLockDuration:TextView
+    private lateinit var btnSave:       Button
+    private lateinit var tvPrimaryNote: TextView
+    private lateinit var tvTimeUntil:   TextView
 
     private var vibrator: Vibrator? = null
     private val RINGTONE_REQUEST = 101
@@ -49,43 +49,27 @@ class EditAlarmActivity : AppCompatActivity() {
             getSystemService(VIBRATOR_SERVICE) as Vibrator
         }
 
-        tvTime         = findViewById(R.id.tvTime)
+        npHour         = findViewById(R.id.npHour)
+        npMinute       = findViewById(R.id.npMinute)
+        npAmPm         = findViewById(R.id.npAmPm)
         etLabel        = findViewById(R.id.etLabel)
         switchPrimary  = findViewById(R.id.switchPrimary)
         switchVibrate  = findViewById(R.id.switchVibrate)
         tvRingtone     = findViewById(R.id.tvRingtone)
         lockSection    = findViewById(R.id.lockSection)
-        seekLock       = findViewById(R.id.seekLock)
+        rulerLock      = findViewById(R.id.rulerLock)
         tvLockDuration = findViewById(R.id.tvLockDuration)
         btnSave        = findViewById(R.id.btnSave)
         tvPrimaryNote  = findViewById(R.id.tvPrimaryNote)
         tvTimeUntil    = findViewById(R.id.tvTimeUntil)
 
-        seekLock.max = 90
-        seekLock.progress = 0
-        lastSliderProgress = 0
-
-        seekLock.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
-                val duration = 30 + progress
-                tvLockDuration.text = formatDuration(duration)
-                if (fromUser && progress != lastSliderProgress) {
-                    vibrateSliderTick()
-                    lastSliderProgress = progress
-                }
-            }
-            override fun onStartTrackingTouch(sb: SeekBar?) {}
-            override fun onStopTrackingTouch(sb: SeekBar?) {
-                vibrator?.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
-            }
-        })
+        setupTimeWheels()
+        setupLockRuler()
 
         switchPrimary.setOnCheckedChangeListener { _, checked ->
             lockSection.visibility   = if (checked) View.VISIBLE else View.GONE
             tvPrimaryNote.visibility = if (checked) View.VISIBLE else View.GONE
         }
-
-        tvTime.setOnClickListener { showTimePicker() }
 
         findViewById<View>(R.id.ringtoneRow).setOnClickListener {
             val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
@@ -108,15 +92,76 @@ class EditAlarmActivity : AppCompatActivity() {
                 alarm?.let { populateFields(it) }
             }
         } else {
-            updateTimeDisplay()
-            updateTimeUntil()
+            setWheelsFrom24(selectedHour, selectedMinute)
+            refreshSelectedTime()
         }
 
         supportActionBar?.title = if (alarmId == -1) "New Alarm" else "Edit Alarm"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
-    private fun vibrateSliderTick() {
+    // ─── Time wheels ───────────────────────────────────────────────────────────
+
+    private fun setupTimeWheels() {
+        npHour.minValue = 1
+        npHour.maxValue = 12
+        npHour.wrapSelectorWheel = true
+
+        npMinute.minValue = 0
+        npMinute.maxValue = 59
+        npMinute.wrapSelectorWheel = true
+        npMinute.setFormatter { String.format("%02d", it) }
+
+        npAmPm.minValue = 0
+        npAmPm.maxValue = 1
+        npAmPm.displayedValues = arrayOf("AM", "PM")
+        npAmPm.wrapSelectorWheel = false
+
+        val listener = NumberPicker.OnValueChangeListener { _, _, _ ->
+            vibrateTick()
+            refreshSelectedTime()
+        }
+        npHour.setOnValueChangedListener(listener)
+        npMinute.setOnValueChangedListener(listener)
+        npAmPm.setOnValueChangedListener(listener)
+    }
+
+    private fun setWheelsFrom24(hour24: Int, minute: Int) {
+        npHour.value   = if (hour24 % 12 == 0) 12 else hour24 % 12
+        npMinute.value = minute
+        npAmPm.value   = if (hour24 >= 12) 1 else 0
+    }
+
+    private fun readWheels24(): Pair<Int, Int> {
+        val h12  = npHour.value
+        val isPm = npAmPm.value == 1
+        val hour24 = when {
+            isPm && h12 == 12  -> 12
+            isPm               -> h12 + 12
+            !isPm && h12 == 12 -> 0
+            else               -> h12
+        }
+        return hour24 to npMinute.value
+    }
+
+    private fun refreshSelectedTime() {
+        val (h, m) = readWheels24()
+        selectedHour = h
+        selectedMinute = m
+        updateTimeUntil()
+    }
+
+    // ─── Lock-duration ruler ─────────────────────────────────────────────────
+
+    private fun setupLockRuler() {
+        rulerLock.minValue = 1
+        rulerLock.maxValue = 720
+        rulerLock.value = 30
+        tvLockDuration.text = formatDuration(rulerLock.value)
+        rulerLock.onValueChanged = { tvLockDuration.text = formatDuration(it) }
+    }
+
+    private fun vibrateTick() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
         } else {
@@ -129,40 +174,18 @@ class EditAlarmActivity : AppCompatActivity() {
         selectedMinute      = alarm.minute
         selectedRingtoneUri = alarm.ringtoneUri
 
-        updateTimeDisplay()
-        updateTimeUntil()
+        setWheelsFrom24(alarm.hour, alarm.minute)
+        refreshSelectedTime()
         etLabel.setText(alarm.label)
         switchPrimary.isChecked = alarm.isPrimary
         switchVibrate.isChecked = alarm.vibrate
 
-        val sliderProgress = (alarm.lockDurationMinutes - 30).coerceIn(0, 90)
-        seekLock.progress  = sliderProgress
-        lastSliderProgress = sliderProgress
+        rulerLock.value = alarm.lockDurationMinutes
         tvLockDuration.text = formatDuration(alarm.lockDurationMinutes)
 
         lockSection.visibility   = if (alarm.isPrimary) View.VISIBLE else View.GONE
         tvPrimaryNote.visibility = if (alarm.isPrimary) View.VISIBLE else View.GONE
         tvRingtone.text = if (alarm.ringtoneUri == "default") "Default alarm" else "Custom"
-    }
-
-    private fun showTimePicker() {
-        TimePickerDialog(this, { _, hour, minute ->
-            selectedHour   = hour
-            selectedMinute = minute
-            updateTimeDisplay()
-            updateTimeUntil()
-            vibrator?.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
-        }, selectedHour, selectedMinute, false).show()
-    }
-
-    private fun updateTimeDisplay() {
-        val amPm = if (selectedHour < 12) "AM" else "PM"
-        val h = when {
-            selectedHour == 0  -> 12
-            selectedHour > 12  -> selectedHour - 12
-            else               -> selectedHour
-        }
-        tvTime.text = "%d:%02d %s".format(h, selectedMinute, amPm)
     }
 
     private fun updateTimeUntil() {
@@ -187,7 +210,8 @@ class EditAlarmActivity : AppCompatActivity() {
     }
 
     private fun saveAlarm() {
-        val finalLockDuration = 30 + seekLock.progress
+        refreshSelectedTime()
+        val finalLockDuration = rulerLock.value
 
         val alarm = Alarm(
             id                  = if (alarmId == -1) 0 else alarmId,

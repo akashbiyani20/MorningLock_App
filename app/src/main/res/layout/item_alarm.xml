@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -43,9 +44,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="8:00 AM"
-                android:textSize="42sp"
+                android:textSize="44sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/inter_bold"
+                android:letterSpacing="-0.03"
                 android:textColor="@color/text_primary"
                 android:includeFontPadding="false"/>
 
@@ -107,17 +109,19 @@
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchEnabled"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:thumbTint="@color/switch_thumb_tint"
+                app:trackTint="@color/switch_track_tint"/>
 
             <ImageButton
                 android:id="@+id/btnDelete"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_delete_modern"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_trash"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_marginTop="12dp"
                 android:contentDescription="Delete alarm"
-                android:padding="6dp"/>
+                android:padding="8dp"/>
 
         </LinearLayout>
 

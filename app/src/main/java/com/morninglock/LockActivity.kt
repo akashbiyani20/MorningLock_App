@@ -1,6 +1,9 @@
 package com.morninglock
 
 import android.os.*
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -16,13 +19,13 @@ class LockActivity : AppCompatActivity() {
     private lateinit var tvCompletionMsg: TextView
 
     private val handler = Handler(Looper.getMainLooper())
+    private val orangeColor by lazy { getColor(R.color.orange_primary) }
 
     // Bounce state
     private var posX = 0f
     private var posY = 0f
     private var velX = 0f
     private var velY = 0f
-    private var colorIndex = 0
 
     // Countdown state
     private var lastSecShown = -1
@@ -38,19 +41,11 @@ class LockActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val AUTO_DIM_DELAY_MS = 12_000L
-        const val DIM_BRIGHTNESS = 0.02f
+        const val AUTO_DIM_DELAY_MS = 10_000L
+        const val DIM_BRIGHTNESS = 0.01f
+        const val DIM_ALPHA = 0.4f
         const val TICK_MS = 250L
         const val FRAME_MS = 16L
-
-        // Colors the timer cycles through on each wall bounce (the "fun" factor).
-        val BOUNCE_COLORS = intArrayOf(
-            0xFFFFFFFF.toInt(), // white
-            0xFFFF6B35.toInt(), // orange
-            0xFF36D1C4.toInt(), // teal
-            0xFFFFD23F.toInt(), // yellow
-            0xFFFF6FB5.toInt()  // pink
-        )
     }
 
     private val tickRunnable = object : Runnable {
@@ -62,14 +57,13 @@ class LockActivity : AppCompatActivity() {
                 showCompletion()
                 return
             }
-            // Lock ended early / was cancelled for some other reason — just leave.
-            if (!LockService.isRunning) {
+            if (!LockService.isRunning) {   // ended early / cancelled
                 finish()
                 return
             }
 
             val secLeft = (remaining / 1000).toInt()
-            tvTimer.text = formatCountdown(secLeft)
+            renderTimer(secLeft)
 
             if (secLeft != lastSecShown) {
                 lastSecShown = secLeft
@@ -106,16 +100,32 @@ class LockActivity : AppCompatActivity() {
         tvCompletionMsg   = findViewById(R.id.tvCompletionMsg)
         findViewById<Button>(R.id.btnDone).setOnClickListener { finish() }
 
-        // Initial value so it doesn't flash 0:00:00.
         val remaining = (LockService.lockEndTime - System.currentTimeMillis()).coerceAtLeast(0)
-        tvTimer.text = formatCountdown((remaining / 1000).toInt())
+        renderTimer((remaining / 1000).toInt())
 
         handler.post(tickRunnable)
         lockRoot.post { setupBounce() }
         scheduleAutoDim()
     }
 
-    // ─── Bouncing countdown ──────────────────────────────────────────────────
+    // ─── Countdown rendering (white, with seconds in orange) ───────────────────
+
+    private fun renderTimer(totalSec: Int) {
+        val s = totalSec.coerceAtLeast(0)
+        val h = s / 3600
+        val m = (s % 3600) / 60
+        val sec = s % 60
+        val str = "%d:%02d:%02d".format(h, m, sec)
+        val span = SpannableString(str)
+        val secStart = str.length - 2   // the two seconds digits
+        span.setSpan(
+            ForegroundColorSpan(orangeColor),
+            secStart, str.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        tvTimer.text = span
+    }
+
+    // ─── Bouncing countdown ────────────────────────────────────────────────────
 
     private fun setupBounce() {
         posX = (lockRoot.width - tvTimer.width) / 2f
@@ -123,7 +133,7 @@ class LockActivity : AppCompatActivity() {
         tvTimer.translationX = posX
         tvTimer.translationY = posY
 
-        val speed = 2.2f * resources.displayMetrics.density
+        val speed = 1.4f * resources.displayMetrics.density   // a bit slower
         velX = speed
         velY = speed
         handler.post(bounceRunnable)
@@ -134,37 +144,23 @@ class LockActivity : AppCompatActivity() {
         val maxY = (lockRoot.height - tvTimer.height).toFloat()
         if (maxX <= 0f || maxY <= 0f) return
 
-        var bounced = false
         posX += velX
         posY += velY
 
-        if (posX <= 0f)      { posX = 0f;    velX = -velX; bounced = true }
-        else if (posX >= maxX) { posX = maxX; velX = -velX; bounced = true }
-        if (posY <= 0f)      { posY = 0f;    velY = -velY; bounced = true }
-        else if (posY >= maxY) { posY = maxY; velY = -velY; bounced = true }
-
-        if (bounced) {
-            colorIndex = (colorIndex + 1) % BOUNCE_COLORS.size
-            tvTimer.setTextColor(BOUNCE_COLORS[colorIndex])
-        }
+        if (posX <= 0f)        { posX = 0f;    velX = -velX }
+        else if (posX >= maxX) { posX = maxX;  velX = -velX }
+        if (posY <= 0f)        { posY = 0f;    velY = -velY }
+        else if (posY >= maxY) { posY = maxY;  velY = -velY }
 
         tvTimer.translationX = posX
         tvTimer.translationY = posY
-    }
-
-    private fun formatCountdown(totalSec: Int): String {
-        val s = totalSec.coerceAtLeast(0)
-        val h = s / 3600
-        val m = (s % 3600) / 60
-        val sec = s % 60
-        return "%d:%02d:%02d".format(h, m, sec)
     }
 
     private fun vibrateTick() {
         vibrator?.vibrate(VibrationEffect.createOneShot(180, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
-    // ─── Completion ──────────────────────────────────────────────────────────
+    // ─── Completion ────────────────────────────────────────────────────────────
 
     private fun showCompletion() {
         if (isFinished) return
@@ -173,17 +169,16 @@ class LockActivity : AppCompatActivity() {
         handler.removeCallbacks(bounceRunnable)
         handler.removeCallbacks(autoDimRunnable)
 
-        // Make sure the screen is at full brightness for the celebration.
         window.attributes = window.attributes.apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         }
         isDimmed = false
 
         tvTimer.visibility = View.GONE
-        tvCompletionMsg.text = "You stayed off your phone for ${formatDuration(LockService.lockTotalMinutes)}.\nNice work. 💪"
+        tvCompletionMsg.text =
+            "You stayed off your phone for ${formatDuration(LockService.lockTotalMinutes)}.\nNice work. 💪"
         completionOverlay.visibility = View.VISIBLE
 
-        // Celebratory finish pattern.
         vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 120, 80, 120, 80, 350), -1))
     }
 
@@ -195,7 +190,7 @@ class LockActivity : AppCompatActivity() {
             if (m == 0) "${h}h" else "${h}h ${m}m"
         }
 
-    // ─── Always-on dim mode ──────────────────────────────────────────────────
+    // ─── Always-on dim (near-black, faint timer) ──────────────────────────────
 
     private fun scheduleAutoDim() {
         handler.removeCallbacks(autoDimRunnable)
@@ -205,11 +200,13 @@ class LockActivity : AppCompatActivity() {
     private fun enterDim() {
         if (isDimmed || isFinished) return
         isDimmed = true
+        tvTimer.alpha = DIM_ALPHA
         window.attributes = window.attributes.apply { screenBrightness = DIM_BRIGHTNESS }
     }
 
     private fun exitDim() {
         isDimmed = false
+        tvTimer.alpha = 1f
         window.attributes = window.attributes.apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         }

@@ -123,13 +123,15 @@ class MainActivity : AppCompatActivity() {
     // ─── Focus timer ───────────────────────────────────────────────────────────
 
     private fun setupTimerSection() {
-        val slider   = findViewById<GrainSlider>(R.id.grainSlider)
+        val ruler    = findViewById<GrainRuler>(R.id.grainSlider)
         val tvDur    = findViewById<TextView>(R.id.tvTimerDuration)
         val btnStart = findViewById<Button>(R.id.btnStartFocus)
 
-        slider.minutes = 30
-        tvDur.text = formatDuration(slider.minutes)
-        slider.onMinutesChanged = { tvDur.text = formatDuration(it) }
+        ruler.minValue = 1
+        ruler.maxValue = 720
+        ruler.value = 30
+        tvDur.text = formatDuration(ruler.value)
+        ruler.onValueChanged = { tvDur.text = formatDuration(it) }
 
         btnStart.setOnClickListener {
             if (!hasUsageStatsPermission() || !Settings.canDrawOverlays(this)) {
@@ -142,7 +144,7 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val intent = Intent(this, LockService::class.java)
-                .putExtra("lock_duration_minutes", slider.minutes)
+                .putExtra("lock_duration_minutes", ruler.value)
             startForegroundService(intent)
         }
     }

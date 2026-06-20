@@ -39,4 +39,10 @@
         <item name="android:fontFamily">@font/inter</item>
     </style>
 
+    <!-- Theme overlay applied to the alarm-time NumberPickers (iOS-style wheels) -->
+    <style name="WheelPicker">
+        <item name="colorControlNormal">@color/orange_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+    </style>
+
 </resources>

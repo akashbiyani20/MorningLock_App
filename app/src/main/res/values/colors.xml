@@ -8,4 +8,7 @@
     <color name="text_primary">#111111</color>
     <color name="text_secondary">#555555</color>
     <color name="text_hint">#999999</color>
+    <color name="accent_pink">#FF2D78</color>
+    <color name="accent_violet">#7C5CFF</color>
+    <color name="switch_off">#D2D2D7</color>
 </resources>
