@@ -3,7 +3,7 @@ package com.morninglock
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -15,7 +15,7 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val prefs = getSharedPreferences("morninglock_prefs", MODE_PRIVATE)
-        val switchDark = findViewById<MaterialSwitch>(R.id.switchDarkMode)
+        val switchDark = findViewById<SwitchMaterial>(R.id.switchDarkMode)
         switchDark.isChecked = prefs.getBoolean("dark_mode", true)
 
         switchDark.setOnCheckedChangeListener { _, isDark ->

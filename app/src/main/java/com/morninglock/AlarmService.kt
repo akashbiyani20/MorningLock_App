@@ -51,9 +51,17 @@ class AlarmService : Service() {
         currentAlarmId = alarmId
         isRinging = true
 
+        // Call startForeground immediately (synchronously) to satisfy the Android 8+
+        // 5-second rule on every device, before we hit the database.
+        startForeground(alarmId + 100, buildLoadingNotification())
+
         scope.launch {
             val alarm = AppDatabase.getInstance(this@AlarmService).alarmDao().getAlarm(alarmId)
-                ?: return@launch
+            if (alarm == null) {
+                // Alarm was deleted before it fired — clean up instead of leaking the service.
+                withContext(Dispatchers.Main) { releaseResources() }
+                return@launch
+            }
 
             withContext(Dispatchers.Main) {
                 startForeground(alarmId + 100, buildNotification(alarm))
@@ -147,6 +155,14 @@ class AlarmService : Service() {
         vibrator?.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    private fun buildLoadingNotification(): Notification {
+        return Notification.Builder(this, CHANNEL_ID)
+            .setContentTitle("⏰ Alarm")
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setOngoing(true)
+            .build()
     }
 
     private fun buildNotification(alarm: Alarm): Notification {

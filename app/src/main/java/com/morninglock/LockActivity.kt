@@ -2,6 +2,8 @@ package com.morninglock
 
 import android.content.Intent
 import android.os.*
+import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
@@ -15,12 +17,22 @@ class LockActivity : AppCompatActivity() {
     private lateinit var tvUnlockTime: TextView
     private lateinit var tvQuote: TextView
     private lateinit var btnExtend: Button
+    private lateinit var lockContent: View
+    private lateinit var dimOverlay: View
+    private lateinit var tvDimTimer: TextView
     private val handler = Handler(Looper.getMainLooper())
+
+    private var isDimmed = false
+    private val autoDimRunnable = Runnable { enterDim() }
 
     // Extend broadcasts to LockService via companion
     companion object {
         const val ACTION_EXTEND = "com.morninglock.ACTION_EXTEND"
         const val EXTEND_MINUTES = 10
+
+        // Always-on dim: idle delay before auto-dimming, and the dimmed brightness.
+        const val AUTO_DIM_DELAY_MS = 12_000L
+        const val DIM_BRIGHTNESS = 0.02f
 
         val QUOTES = listOf(
             "The morning is the rudder of the day.",
@@ -74,6 +86,10 @@ class LockActivity : AppCompatActivity() {
         tvQuote      = findViewById(R.id.tvQuote)
         val btnCall  = findViewById<Button>(R.id.btnCall)
         btnExtend    = findViewById(R.id.btnExtend)
+        lockContent  = findViewById(R.id.lockContent)
+        dimOverlay   = findViewById(R.id.dimOverlay)
+        tvDimTimer   = findViewById(R.id.tvDimTimer)
+        val btnDim   = findViewById<Button>(R.id.btnDim)
 
         // Pick a random quote from the list
         tvQuote.text = QUOTES.random()
@@ -83,6 +99,10 @@ class LockActivity : AppCompatActivity() {
         btnCall.setOnClickListener {
             startActivity(Intent(Intent.ACTION_DIAL))
         }
+
+        btnDim.setOnClickListener { enterDim() }
+
+        scheduleAutoDim()
 
         btnExtend.setOnClickListener {
             // Add 10 minutes to lock end time
@@ -111,7 +131,48 @@ class LockActivity : AppCompatActivity() {
         val remaining = (LockService.lockEndTime - System.currentTimeMillis()).coerceAtLeast(0)
         val mins = TimeUnit.MILLISECONDS.toMinutes(remaining)
         val secs = TimeUnit.MILLISECONDS.toSeconds(remaining) % 60
-        tvTimer.text = "%d:%02d".format(mins, secs)
+        val text = "%d:%02d".format(mins, secs)
+        tvTimer.text = text
+        tvDimTimer.text = text
+    }
+
+    // ─── Always-on dim mode ──────────────────────────────────────────────────
+
+    private fun scheduleAutoDim() {
+        handler.removeCallbacks(autoDimRunnable)
+        handler.postDelayed(autoDimRunnable, AUTO_DIM_DELAY_MS)
+    }
+
+    private fun enterDim() {
+        if (isDimmed) return
+        isDimmed = true
+        handler.removeCallbacks(autoDimRunnable)
+        lockContent.visibility = View.GONE
+        dimOverlay.visibility = View.VISIBLE
+        window.attributes = window.attributes.apply { screenBrightness = DIM_BRIGHTNESS }
+    }
+
+    private fun exitDim() {
+        isDimmed = false
+        dimOverlay.visibility = View.GONE
+        lockContent.visibility = View.VISIBLE
+        window.attributes = window.attributes.apply {
+            screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
+        scheduleAutoDim()
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            if (isDimmed) {
+                // First tap only wakes the screen — don't pass through to the UI.
+                exitDim()
+                return true
+            }
+            // Any interaction resets the idle-dim timer.
+            scheduleAutoDim()
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     private fun updateUnlockTime() {
@@ -126,6 +187,7 @@ class LockActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(timerRunnable)
+        handler.removeCallbacks(autoDimRunnable)
     }
 
     @Suppress("OVERRIDE_DEPRECATION")

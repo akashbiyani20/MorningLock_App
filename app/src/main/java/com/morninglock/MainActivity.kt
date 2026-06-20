@@ -1,9 +1,13 @@
 package com.morninglock
 
+import android.Manifest
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
@@ -24,6 +28,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: AlarmAdapter
     private lateinit var tvPermWarning: TextView
 
+    private lateinit var alarmSection: View
+    private lateinit var timerSection: View
+    private lateinit var fab: FloatingActionButton
+    private lateinit var btnTabAlarm: ImageButton
+    private lateinit var btnTabTimer: ImageButton
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -31,10 +41,15 @@ class MainActivity : AppCompatActivity() {
         db = AppDatabase.getInstance(this)
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerAlarms)
-        val fab          = findViewById<FloatingActionButton>(R.id.fabAddAlarm)
+        fab              = findViewById(R.id.fabAddAlarm)
         val btnSettings  = findViewById<ImageButton>(R.id.btnSettings)
         val layoutEmpty  = findViewById<View>(R.id.layoutEmpty)
         tvPermWarning    = findViewById(R.id.tvPermWarning)
+
+        alarmSection = findViewById(R.id.alarmSection)
+        timerSection = findViewById(R.id.timerSection)
+        btnTabAlarm  = findViewById(R.id.btnTabAlarm)
+        btnTabTimer  = findViewById(R.id.btnTabTimer)
 
         adapter = AlarmAdapter(
             onToggle = { alarm, enabled ->
@@ -75,7 +90,70 @@ class MainActivity : AppCompatActivity() {
         btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        setupTimerSection()
+        showTab(alarm = true)
+        btnTabAlarm.setOnClickListener { showTab(alarm = true) }
+        btnTabTimer.setOnClickListener { showTab(alarm = false) }
+
+        requestNotificationPermissionIfNeeded()
     }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+        }
+    }
+
+    // ─── Tabs ──────────────────────────────────────────────────────────────────
+
+    private fun showTab(alarm: Boolean) {
+        alarmSection.visibility = if (alarm) View.VISIBLE else View.GONE
+        timerSection.visibility = if (alarm) View.GONE else View.VISIBLE
+        fab.visibility          = if (alarm) View.VISIBLE else View.GONE
+
+        val active   = ColorStateList.valueOf(getColor(R.color.orange_primary))
+        val inactive = ColorStateList.valueOf(getColor(R.color.text_hint))
+        btnTabAlarm.imageTintList = if (alarm) active else inactive
+        btnTabTimer.imageTintList = if (alarm) inactive else active
+    }
+
+    // ─── Focus timer ───────────────────────────────────────────────────────────
+
+    private fun setupTimerSection() {
+        val slider   = findViewById<GrainSlider>(R.id.grainSlider)
+        val tvDur    = findViewById<TextView>(R.id.tvTimerDuration)
+        val btnStart = findViewById<Button>(R.id.btnStartFocus)
+
+        slider.minutes = 30
+        tvDur.text = formatDuration(slider.minutes)
+        slider.onMinutesChanged = { tvDur.text = formatDuration(it) }
+
+        btnStart.setOnClickListener {
+            if (!hasUsageStatsPermission() || !Settings.canDrawOverlays(this)) {
+                Toast.makeText(
+                    this,
+                    "Grant Usage Access + Overlay permission first (see the warning on the Alarms tab)",
+                    Toast.LENGTH_LONG
+                ).show()
+                showTab(alarm = true)
+                return@setOnClickListener
+            }
+            val intent = Intent(this, LockService::class.java)
+                .putExtra("lock_duration_minutes", slider.minutes)
+            startForegroundService(intent)
+        }
+    }
+
+    private fun formatDuration(minutes: Int): String =
+        if (minutes < 60) "$minutes min"
+        else {
+            val h = minutes / 60
+            val m = minutes % 60
+            if (m == 0) "${h}h" else "${h}h ${m}m"
+        }
 
     override fun onResume() {
         super.onResume()

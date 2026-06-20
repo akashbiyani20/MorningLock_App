@@ -27,7 +27,7 @@ class AlarmRingActivity : AppCompatActivity() {
 
         alarmId     = intent.getIntExtra("alarm_id", -1)
         isPrimary   = intent.getBooleanExtra("is_primary", false)
-        lockDuration = intent.getIntExtra("lock_duration", 30)
+        lockDuration = intent.getIntExtra("lock_duration_minutes", 30)
         val label   = intent.getStringExtra("alarm_label") ?: ""
 
         val tvLabel     = findViewById<TextView>(R.id.tvAlarmLabel)

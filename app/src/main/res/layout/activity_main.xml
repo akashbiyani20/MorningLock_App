@@ -11,110 +11,256 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Header -->
-        <LinearLayout
+        <!-- ════════════ CONTENT (swaps between sections) ════════════ -->
+        <FrameLayout
+            android:id="@+id/contentContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="24dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="48dp"
-            android:paddingBottom="16dp">
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Alarms"
-                android:textSize="34sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/inter_bold"
-                android:textColor="@color/text_primary"
-                android:includeFontPadding="false"/>
+            <!-- ─────────── ALARM SECTION ─────────── -->
+            <LinearLayout
+                android:id="@+id/alarmSection"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!-- Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="48dp"
+                    android:paddingBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Alarms"
+                        android:textSize="34sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/inter_bold"
+                        android:textColor="@color/text_primary"
+                        android:includeFontPadding="false"/>
+
+                    <ImageButton
+                        android:id="@+id/btnSettings"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_settings"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Settings"
+                        android:padding="12dp"/>
+
+                </LinearLayout>
+
+                <!-- Permission warning — only visible when permissions are missing -->
+                <TextView
+                    android:id="@+id/tvPermWarning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#1A2200"
+                    android:paddingHorizontal="24dp"
+                    android:paddingVertical="12dp"
+                    android:textColor="#AAFF44"
+                    android:fontFamily="@font/inter"
+                    android:textSize="13sp"
+                    android:visibility="gone"/>
+
+                <!-- Alarm list -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerAlarms"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="88dp"
+                    android:clipToPadding="false"/>
+
+                <!-- Empty state -->
+                <LinearLayout
+                    android:id="@+id/layoutEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⏰"
+                        android:textSize="48sp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="No alarms yet"
+                        android:textColor="@color/text_secondary"
+                        android:fontFamily="@font/inter_bold"
+                        android:textSize="17sp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Tap + to add your first one"
+                        android:textColor="@color/text_hint"
+                        android:fontFamily="@font/inter"
+                        android:textSize="13sp"
+                        android:layout_marginTop="6dp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- ─────────── TIMER / FOCUS SECTION ─────────── -->
+            <LinearLayout
+                android:id="@+id/timerSection"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:paddingTop="48dp"
+                    android:paddingBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Focus"
+                        android:textSize="34sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/inter_bold"
+                        android:textColor="@color/text_primary"
+                        android:includeFontPadding="false"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lock your phone and stay present"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="2dp"/>
+
+                </LinearLayout>
+
+                <!-- Center: duration + grain slider -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tvTimerDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="30 min"
+                        android:textSize="56sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/inter_bold"
+                        android:textColor="@color/orange_primary"
+                        android:includeFontPadding="false"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Slide the grains · 1 min up to 12 hours"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/text_hint"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="20dp"/>
+
+                    <com.morninglock.GrainSlider
+                        android:id="@+id/grainSlider"
+                        android:layout_width="90dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp"/>
+
+                </LinearLayout>
+
+                <!-- Start button -->
+                <Button
+                    android:id="@+id/btnStartFocus"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="START FOCUS"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/inter"
+                    android:backgroundTint="@color/orange_primary"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginHorizontal="24dp"
+                    android:layout_marginBottom="20dp"/>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <!-- ════════════ BOTTOM NAVIGATION (icons only) ════════════ -->
+        <LinearLayout
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:orientation="horizontal"
+            android:background="@color/bg_card"
+            android:elevation="12dp">
 
             <ImageButton
-                android:id="@+id/btnSettings"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_settings"
+                android:id="@+id/btnTabAlarm"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_tab_alarm"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Settings"
-                android:padding="12dp"/>
+                android:contentDescription="Alarms"
+                android:scaleType="centerInside"
+                android:padding="18dp"/>
 
-        </LinearLayout>
-
-        <!-- Permission warning — only visible when permissions are missing -->
-        <TextView
-            android:id="@+id/tvPermWarning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#1A2200"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="12dp"
-            android:textColor="#AAFF44"
-            android:fontFamily="@font/inter"
-            android:textSize="13sp"
-            android:visibility="gone"/>
-
-        <!-- Alarm list -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerAlarms"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="88dp"
-            android:clipToPadding="false"/>
-
-        <!-- Empty state -->
-        <LinearLayout
-            android:id="@+id/layoutEmpty"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⏰"
-                android:textSize="48sp"
-                android:layout_marginBottom="16dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="No alarms yet"
-                android:textColor="@color/text_secondary"
-                android:fontFamily="@font/inter_bold"
-                android:textSize="17sp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Tap + to add your first one"
-                android:textColor="@color/text_hint"
-                android:fontFamily="@font/inter"
-                android:textSize="13sp"
-                android:layout_marginTop="6dp"/>
+            <ImageButton
+                android:id="@+id/btnTabTimer"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/ic_tab_timer"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Focus timer"
+                android:scaleType="centerInside"
+                android:padding="18dp"/>
 
         </LinearLayout>
 
     </LinearLayout>
 
-    <!-- FAB -->
+    <!-- FAB (Add alarm) — sits above the bottom nav, alarm tab only -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddAlarm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="88dp"
         android:contentDescription="Add alarm"
         android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/orange_primary"

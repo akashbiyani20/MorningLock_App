@@ -4,7 +4,9 @@ import android.app.*
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.*
+import android.telecom.TelecomManager
 import android.util.Log
 
 class LockService : Service() {
@@ -40,6 +42,10 @@ class LockService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var usageStatsManager: UsageStatsManager
 
+    // Packages detected at runtime for THIS device (launcher + dialer), so blocking
+    // adapts to any OEM rather than relying only on the hardcoded list above.
+    private val dynamicWhitelist = mutableSetOf<String>()
+
     private val monitorRunnable = object : Runnable {
         override fun run() {
             if (System.currentTimeMillis() >= lockEndTime) {
@@ -57,6 +63,30 @@ class LockService : Service() {
         super.onCreate()
         usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         createNotificationChannel()
+        detectDeviceApps()
+    }
+
+    /** Resolve this device's launcher(s) and dialer so the lock never traps the user. */
+    private fun detectDeviceApps() {
+        try {
+            // All home/launcher apps (current + fallback) — keeps the home button working.
+            val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            packageManager.queryIntentActivities(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                .forEach { dynamicWhitelist.add(it.activityInfo.packageName) }
+
+            // Default dialer (so "Open Dialer" and incoming calls work on any OEM).
+            val telecom = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
+            telecom?.defaultDialerPackage?.let { dynamicWhitelist.add(it) }
+
+            // Whatever resolves a phone-dial intent (covers OEM phone apps).
+            val dialIntent = Intent(Intent.ACTION_DIAL)
+            packageManager.resolveActivity(dialIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                ?.activityInfo?.packageName?.let { dynamicWhitelist.add(it) }
+
+            Log.d("MorningLock", "Dynamic whitelist: $dynamicWhitelist")
+        } catch (e: Exception) {
+            Log.e("MorningLock", "detectDeviceApps failed: ${e.message}")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -81,11 +111,13 @@ class LockService : Service() {
     }
 
     private fun isAllowed(pkg: String): Boolean {
+        if (dynamicWhitelist.contains(pkg)) return true // this device's launcher + dialer
         if (WHITELIST_ALWAYS.contains(pkg)) return true
         if (WHITELIST_CALLS.contains(pkg)) return true  // WhatsApp allowed
         if (pkg.contains("dialer", ignoreCase = true)) return true
         if (pkg.contains("launcher", ignoreCase = true)) return true
         if (pkg.contains("systemui", ignoreCase = true)) return true
+        if (pkg.contains("incallui", ignoreCase = true)) return true
         return false
     }
 
