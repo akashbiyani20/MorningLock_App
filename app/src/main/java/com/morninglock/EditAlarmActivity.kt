@@ -68,10 +68,8 @@ class EditAlarmActivity : AppCompatActivity() {
         setupTimeWheels()
         setupLockRuler()
 
-        switchPrimary.setOnCheckedChangeListener { _, checked ->
-            lockSection.visibility   = if (checked) View.VISIBLE else View.GONE
-            tvPrimaryNote.visibility = if (checked) View.VISIBLE else View.GONE
-        }
+        switchPrimary.setOnCheckedChangeListener { _, checked -> setLockEnabled(checked) }
+        setLockEnabled(switchPrimary.isChecked)
 
         findViewById<View>(R.id.ringtoneRow).setOnClickListener {
             val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
@@ -190,8 +188,7 @@ class EditAlarmActivity : AppCompatActivity() {
         rulerLock.value = alarm.lockDurationMinutes
         tvLockDuration.text = formatDuration(alarm.lockDurationMinutes)
 
-        lockSection.visibility   = if (alarm.isPrimary) View.VISIBLE else View.GONE
-        tvPrimaryNote.visibility = if (alarm.isPrimary) View.VISIBLE else View.GONE
+        setLockEnabled(alarm.isPrimary)
         tvRingtone.text = if (alarm.ringtoneUri == "default") "Default alarm" else "Custom"
     }
 
@@ -247,6 +244,14 @@ class EditAlarmActivity : AppCompatActivity() {
             vibrator?.vibrate(VibrationEffect.createOneShot(60, VibrationEffect.DEFAULT_AMPLITUDE))
             finish()
         }
+    }
+
+    /** Lock duration stays on screen always; orange + interactive when Primary, muted otherwise. */
+    private fun setLockEnabled(on: Boolean) {
+        lockSection.setBackgroundResource(if (on) R.drawable.bg_card_primary else R.drawable.bg_card_normal)
+        tvLockDuration.setTextColor(getColor(if (on) R.color.orange_primary else R.color.text_hint))
+        rulerLock.isEnabled = on
+        rulerLock.alpha = if (on) 1f else 0.45f
     }
 
     private fun deleteAlarm() {

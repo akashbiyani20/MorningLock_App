@@ -194,45 +194,13 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:id="@+id/chip5"
+                            android:id="@+id/chip180"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
                             android:layout_weight="1"
                             android:layout_marginBottom="10dp"
                             android:gravity="center"
-                            android:text="5 min"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/inter_bold"
-                            android:textColor="@color/text_primary"
-                            android:background="@drawable/bg_card_normal"
-                            android:clickable="true"
-                            android:focusable="true"/>
-
-                        <TextView
-                            android:id="@+id/chip10"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:layout_marginBottom="10dp"
-                            android:gravity="center"
-                            android:text="10 min"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:fontFamily="@font/inter_bold"
-                            android:textColor="@color/text_primary"
-                            android:background="@drawable/bg_card_normal"
-                            android:clickable="true"
-                            android:focusable="true"/>
-
-                        <TextView
-                            android:id="@+id/chip30"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:layout_marginBottom="10dp"
-                            android:gravity="center"
-                            android:text="30 min"
+                            android:text="3 hours"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/inter_bold"
@@ -258,12 +226,44 @@
                             android:focusable="true"/>
 
                         <TextView
-                            android:id="@+id/chip180"
+                            android:id="@+id/chip30"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:layout_marginBottom="10dp"
+                            android:gravity="center"
+                            android:text="30 min"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/inter_bold"
+                            android:textColor="@color/text_primary"
+                            android:background="@drawable/bg_card_normal"
+                            android:clickable="true"
+                            android:focusable="true"/>
+
+                        <TextView
+                            android:id="@+id/chip10"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:layout_marginBottom="10dp"
+                            android:gravity="center"
+                            android:text="10 min"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/inter_bold"
+                            android:textColor="@color/text_primary"
+                            android:background="@drawable/bg_card_normal"
+                            android:clickable="true"
+                            android:focusable="true"/>
+
+                        <TextView
+                            android:id="@+id/chip5"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="3 hours"
+                            android:text="5 min"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/inter_bold"
@@ -279,12 +279,13 @@
                         android:layout_width="96dp"
                         android:layout_height="match_parent"
                         android:layout_marginStart="16dp"
+                        android:background="@drawable/bg_ruler_outline"
                         app:rulerVertical="true"/>
 
                 </LinearLayout>
 
                 <!-- Start button -->
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnStartFocus"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"

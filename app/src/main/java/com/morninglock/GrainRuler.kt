@@ -135,6 +135,7 @@ class GrainRuler @JvmOverloads constructor(
     // ─── Touch / scroll ──────────────────────────────────────────────────────
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!isEnabled) return false   // muted (e.g. Primary alarm off)
         val axis = if (vertical) event.y else event.x
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
