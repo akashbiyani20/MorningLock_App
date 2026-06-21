@@ -35,6 +35,7 @@ class GrainRuler @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
     private val spacingPx = 13f * density
+    private val sensitivity = 3.0f   // how many minutes one finger-pixel of drag covers (faster scroll)
     private val maxIndex get() = maxValue - minValue
     private val maxScroll get() = maxIndex * spacingPx
 
@@ -147,7 +148,7 @@ class GrainRuler @JvmOverloads constructor(
             MotionEvent.ACTION_MOVE -> {
                 velocityTracker?.addMovement(event)
                 // Dragging toward the start of the axis increases the value.
-                val delta = lastTouch - axis
+                val delta = (lastTouch - axis) * sensitivity
                 lastTouch = axis
                 scrollPx = (scrollPx + delta).coerceIn(0f, maxScroll)
                 updateSelected(haptic = true)
@@ -161,7 +162,7 @@ class GrainRuler @JvmOverloads constructor(
                 val v = if (vertical) (velocityTracker?.yVelocity ?: 0f) else (velocityTracker?.xVelocity ?: 0f)
                 velocityTracker?.recycle()
                 velocityTracker = null
-                val flingVel = -v   // toward axis start = positive scroll
+                val flingVel = -v * sensitivity   // toward axis start = positive scroll
                 if (abs(flingVel) > minFlingVel) {
                     scroller.fling(scrollPx.toInt(), 0, flingVel.toInt(), 0, 0, maxScroll.toInt(), 0, 0)
                     postInvalidateOnAnimation()

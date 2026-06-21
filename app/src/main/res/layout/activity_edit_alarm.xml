@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="16dp">
 
         <!-- Time wheels (hour / minute / AM-PM) -->
         <LinearLayout
@@ -19,9 +19,8 @@
             android:orientation="horizontal"
             android:gravity="center"
             android:background="@drawable/bg_card_normal"
-            android:paddingVertical="10dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="8dp">
+            android:paddingVertical="6dp"
+            android:layout_marginTop="4dp">
 
             <NumberPicker
                 android:id="@+id/npHour"
@@ -33,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=":"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/inter_bold"
                 android:textColor="@color/text_primary"
@@ -54,7 +53,6 @@
 
         </LinearLayout>
 
-        <!-- "Alarm in Xh Ym" -->
         <TextView
             android:id="@+id/tvTimeUntil"
             android:layout_width="match_parent"
@@ -64,213 +62,33 @@
             android:textColor="@color/orange_primary"
             android:fontFamily="@font/inter"
             android:gravity="center"
-            android:layout_marginBottom="28dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="14dp"
             android:visibility="gone" />
 
-        <!-- Label section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="LABEL"
-            android:textSize="11sp"
-            android:textColor="@color/orange_primary"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter"
-            android:letterSpacing="0.15"
-            android:layout_marginBottom="8dp" />
-
+        <!-- Label -->
         <EditText
             android:id="@+id/etLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="e.g. Wake up"
+            android:hint="Label (optional)"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint"
             android:fontFamily="@font/inter"
             android:background="@drawable/bg_card_normal"
             android:padding="14dp"
             android:inputType="text"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="12dp" />
 
-        <View android:layout_width="match_parent" android:layout_height="1dp"
-            android:background="#1E1E1E" android:layout_marginBottom="20dp"/>
-
-        <!-- Primary toggle -->
+        <!-- Ringtone row -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Primary Alarm 🔒"
-                    android:textSize="16sp"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="@font/inter"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Stopping this alarm starts the morning lock"
-                    android:textSize="13sp"
-                    android:fontFamily="@font/inter"
-                    android:textColor="@color/text_secondary" />
-
-            </LinearLayout>
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchPrimary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:thumbTint="@color/switch_thumb_tint"
-                app:trackTint="@color/switch_track_tint"/>
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvPrimaryNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="⚠️ Only one Primary alarm should be active at a time."
-            android:textSize="12sp"
-            android:fontFamily="@font/inter"
-            android:textColor="@color/orange_muted"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone" />
-
-        <!-- Lock duration section -->
-        <LinearLayout
-            android:id="@+id/lockSection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card_primary"
-            android:padding="18dp"
-            android:layout_marginBottom="24dp"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lock Duration"
-                    android:textSize="15sp"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="@font/inter"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvLockDuration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="30 min"
-                    android:textSize="20sp"
-                    android:fontFamily="@font/inter"
-                    android:textColor="@color/orange_primary"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- Horizontal grain ruler — scroll to set the lock duration -->
-            <com.morninglock.GrainRuler
-                android:id="@+id/rulerLock"
-                android:layout_width="match_parent"
-                android:layout_height="96dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Scroll · 1 grain = 1 min · buzzes each step"
-                android:textSize="11sp"
-                android:fontFamily="@font/inter"
-                android:textColor="@color/text_hint"
-                android:gravity="center"
-                android:layout_marginTop="10dp" />
-
-        </LinearLayout>
-
-        <View android:layout_width="match_parent" android:layout_height="1dp"
-            android:background="#1E1E1E" android:layout_marginBottom="20dp"/>
-
-        <!-- Vibrate -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Vibrate"
-                    android:textSize="16sp"
-                    android:fontFamily="@font/inter"
-                    android:textColor="@color/text_primary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Vibrate when alarm rings"
-                    android:textSize="12sp"
-                    android:fontFamily="@font/inter"
-                    android:textColor="@color/text_hint" />
-
-            </LinearLayout>
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchVibrate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                app:thumbTint="@color/switch_thumb_tint"
-                app:trackTint="@color/switch_track_tint"/>
-
-        </LinearLayout>
-
-        <!-- Ringtone -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="RINGTONE"
-            android:textSize="11sp"
-            android:textColor="@color/orange_primary"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter"
-            android:letterSpacing="0.15"
-            android:layout_marginBottom="8dp" />
-
-        <LinearLayout
+            android:id="@+id/ringtoneRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_card_normal"
             android:padding="14dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="32dp"
-            android:id="@+id/ringtoneRow">
+            android:layout_marginBottom="12dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -292,19 +110,161 @@
 
         </LinearLayout>
 
-        <!-- Save button -->
-        <Button
-            android:id="@+id/btnSave"
+        <!-- Vibrate row -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="SAVE ALARM"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter_bold"
-            android:letterSpacing="0.08"
-            android:background="@drawable/bg_btn_gradient"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="40dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_normal"
+            android:padding="14dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Vibrate"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_primary" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchVibrate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                app:thumbTint="@color/switch_thumb_tint"
+                app:trackTint="@color/switch_track_tint"/>
+
+        </LinearLayout>
+
+        <!-- Primary toggle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_normal"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Primary Alarm 🔒"
+                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/inter"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPrimaryNote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Stopping it starts the lock"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:thumbTint="@color/switch_thumb_tint"
+                app:trackTint="@color/switch_track_tint"/>
+
+        </LinearLayout>
+
+        <!-- Lock duration section (only when Primary) -->
+        <LinearLayout
+            android:id="@+id/lockSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_primary"
+            android:padding="14dp"
+            android:layout_marginTop="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Lock Duration"
+                    android:textSize="15sp"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="@font/inter"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvLockDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30 min"
+                    android:textSize="22sp"
+                    android:fontFamily="@font/inter_bold"
+                    android:textColor="@color/orange_primary"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <com.morninglock.GrainRuler
+                android:id="@+id/rulerLock"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <!-- Delete + Save -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="18dp">
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="DELETE"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/inter_bold"
+                android:background="@drawable/bg_card_normal"
+                android:textColor="#FF5A6E" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="SAVE"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/inter_bold"
+                android:letterSpacing="0.08"
+                android:background="@drawable/bg_btn_gradient"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

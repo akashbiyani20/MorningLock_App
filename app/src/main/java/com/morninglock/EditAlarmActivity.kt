@@ -30,6 +30,7 @@ class EditAlarmActivity : AppCompatActivity() {
     private lateinit var rulerLock:     GrainRuler
     private lateinit var tvLockDuration:TextView
     private lateinit var btnSave:       Button
+    private lateinit var btnDelete:     Button
     private lateinit var tvPrimaryNote: TextView
     private lateinit var tvTimeUntil:   TextView
 
@@ -60,6 +61,7 @@ class EditAlarmActivity : AppCompatActivity() {
         rulerLock      = findViewById(R.id.rulerLock)
         tvLockDuration = findViewById(R.id.tvLockDuration)
         btnSave        = findViewById(R.id.btnSave)
+        btnDelete      = findViewById(R.id.btnDelete)
         tvPrimaryNote  = findViewById(R.id.tvPrimaryNote)
         tvTimeUntil    = findViewById(R.id.tvTimeUntil)
 
@@ -85,6 +87,11 @@ class EditAlarmActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener { saveAlarm() }
+
+        btnDelete.text = if (alarmId == -1) "CANCEL" else "DELETE"
+        btnDelete.setOnClickListener {
+            if (alarmId == -1) finish() else deleteAlarm()
+        }
 
         if (alarmId != -1) {
             lifecycleScope.launch {
@@ -238,6 +245,18 @@ class EditAlarmActivity : AppCompatActivity() {
                 AlarmScheduler.schedule(this@EditAlarmActivity, alarm)
             }
             vibrator?.vibrate(VibrationEffect.createOneShot(60, VibrationEffect.DEFAULT_AMPLITUDE))
+            finish()
+        }
+    }
+
+    private fun deleteAlarm() {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@EditAlarmActivity)
+            val a = db.alarmDao().getAlarm(alarmId)
+            if (a != null) {
+                AlarmScheduler.cancel(this@EditAlarmActivity, a)
+                db.alarmDao().delete(a)
+            }
             finish()
         }
     }

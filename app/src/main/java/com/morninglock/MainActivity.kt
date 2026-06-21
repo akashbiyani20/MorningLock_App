@@ -64,12 +64,6 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, EditAlarmActivity::class.java).apply {
                     putExtra("alarm_id", alarm.id)
                 })
-            },
-            onDelete = { alarm ->
-                lifecycleScope.launch {
-                    AlarmScheduler.cancel(this@MainActivity, alarm)
-                    db.alarmDao().delete(alarm)
-                }
             }
         )
 
@@ -127,11 +121,44 @@ class MainActivity : AppCompatActivity() {
         val tvDur    = findViewById<TextView>(R.id.tvTimerDuration)
         val btnStart = findViewById<Button>(R.id.btnStartFocus)
 
+        val presets = listOf(
+            findViewById<TextView>(R.id.chip5)   to 5,
+            findViewById<TextView>(R.id.chip10)  to 10,
+            findViewById<TextView>(R.id.chip30)  to 30,
+            findViewById<TextView>(R.id.chip60)  to 60,
+            findViewById<TextView>(R.id.chip180) to 180
+        )
+
+        fun highlight(value: Int) {
+            for ((chip, v) in presets) {
+                chip.setBackgroundResource(
+                    if (v == value) R.drawable.bg_card_primary else R.drawable.bg_card_normal
+                )
+                chip.setTextColor(
+                    getColor(if (v == value) R.color.orange_primary else R.color.text_primary)
+                )
+            }
+        }
+
         ruler.minValue = 1
         ruler.maxValue = 720
         ruler.value = 30
         tvDur.text = formatDuration(ruler.value)
-        ruler.onValueChanged = { tvDur.text = formatDuration(it) }
+        highlight(30)
+
+        ruler.onValueChanged = {
+            tvDur.text = formatDuration(it)
+            highlight(it)
+        }
+
+        for ((chip, v) in presets) {
+            chip.setOnClickListener {
+                chip.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                ruler.value = v
+                tvDur.text = formatDuration(v)
+                highlight(v)
+            }
+        }
 
         btnStart.setOnClickListener {
             if (!hasUsageStatsPermission() || !Settings.canDrawOverlays(this)) {
@@ -195,8 +222,7 @@ class MainActivity : AppCompatActivity() {
 
 class AlarmAdapter(
     private val onToggle: (Alarm, Boolean) -> Unit,
-    private val onEdit:   (Alarm) -> Unit,
-    private val onDelete: (Alarm) -> Unit
+    private val onEdit:   (Alarm) -> Unit
 ) : RecyclerView.Adapter<AlarmAdapter.AlarmViewHolder>() {
 
     private var alarms: List<Alarm> = emptyList()
@@ -214,7 +240,6 @@ class AlarmAdapter(
         val tvType:     TextView     = view.findViewById(R.id.tvType)
         val tvLockInfo: TextView     = view.findViewById(R.id.tvLockInfo)
         val toggle:     SwitchCompat = view.findViewById(R.id.switchEnabled)
-        val btnDelete:  ImageButton  = view.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlarmViewHolder {
@@ -250,7 +275,6 @@ class AlarmAdapter(
         holder.toggle.setOnCheckedChangeListener { _, checked -> onToggle(alarm, checked) }
 
         holder.itemView.setOnClickListener { onEdit(alarm) }
-        holder.btnDelete.setOnClickListener { onDelete(alarm) }
     }
 
     override fun getItemCount() = alarms.size
