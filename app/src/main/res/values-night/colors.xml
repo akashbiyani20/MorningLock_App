@@ -9,6 +9,5 @@
     <color name="text_secondary">#AAAAAA</color>
     <color name="text_hint">#555555</color>
     <color name="accent_pink">#FF2D78</color>
-    <color name="accent_violet">#7C5CFF</color>
     <color name="switch_off">#3A3A3C</color>
 </resources>

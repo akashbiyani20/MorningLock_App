@@ -31,7 +31,6 @@ class EditAlarmActivity : AppCompatActivity() {
     private lateinit var tvLockDuration:TextView
     private lateinit var btnSave:       Button
     private lateinit var btnDelete:     Button
-    private lateinit var tvPrimaryNote: TextView
     private lateinit var tvTimeUntil:   TextView
 
     private var vibrator: Vibrator? = null
@@ -62,7 +61,6 @@ class EditAlarmActivity : AppCompatActivity() {
         tvLockDuration = findViewById(R.id.tvLockDuration)
         btnSave        = findViewById(R.id.btnSave)
         btnDelete      = findViewById(R.id.btnDelete)
-        tvPrimaryNote  = findViewById(R.id.tvPrimaryNote)
         tvTimeUntil    = findViewById(R.id.tvTimeUntil)
 
         setupTimeWheels()
