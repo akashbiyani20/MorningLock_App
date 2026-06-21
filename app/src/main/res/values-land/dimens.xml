@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Landscape: flip clock goes big and fills the screen -->
+    <dimen name="flip_card_height">220dp</dimen>
+    <dimen name="flip_digit_size">110sp</dimen>
+</resources>

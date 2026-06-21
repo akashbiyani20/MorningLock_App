@@ -93,10 +93,10 @@ class LockActivity : AppCompatActivity() {
         tvCompletionMsg   = findViewById(R.id.tvCompletionMsg)
         findViewById<Button>(R.id.btnDone).setOnClickListener { finish() }
 
-        val white  = 0xFFFFFFFF.toInt()
-        val orange = getColor(R.color.orange_primary)
-        setupSwitcher(tsHours, white)
-        setupSwitcher(tsMinutes, white)
+        val softWhite = 0xFFECECF1.toInt()   // calm, not harsh
+        val orange    = getColor(R.color.orange_primary)
+        setupSwitcher(tsHours, softWhite)
+        setupSwitcher(tsMinutes, softWhite)
         setupSwitcher(tsSeconds, orange)
 
         // First paint without animation.
@@ -118,7 +118,7 @@ class LockActivity : AppCompatActivity() {
             TextView(this).apply {
                 gravity = Gravity.CENTER
                 setTextColor(color)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 62f)
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.flip_digit_size))
                 typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
                 includeFontPadding = false
                 layoutParams = FrameLayout.LayoutParams(

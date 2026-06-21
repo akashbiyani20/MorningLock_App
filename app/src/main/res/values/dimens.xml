@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Portrait: flip clock is horizontal with space above/below -->
+    <dimen name="flip_card_height">150dp</dimen>
+    <dimen name="flip_digit_size">62sp</dimen>
+</resources>
