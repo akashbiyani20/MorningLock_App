@@ -289,7 +289,7 @@
                     android:id="@+id/btnStartFocus"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
-                    android:text="START FOCUS"
+                    android:text="▶  START FOCUS"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:fontFamily="@font/inter_bold"

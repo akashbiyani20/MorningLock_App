@@ -1,34 +1,34 @@
 package com.morninglock
 
+import android.graphics.Typeface
 import android.os.*
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.AnimationUtils
 import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.TextSwitcher
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class LockActivity : AppCompatActivity() {
 
-    private lateinit var lockRoot: View
-    private lateinit var tvTimer: TextView
+    private lateinit var clockWrap: View
+    private lateinit var tsHours: TextSwitcher
+    private lateinit var tsMinutes: TextSwitcher
+    private lateinit var tsSeconds: TextSwitcher
     private lateinit var completionOverlay: View
     private lateinit var tvCompletionMsg: TextView
 
     private val handler = Handler(Looper.getMainLooper())
-    private val orangeColor by lazy { getColor(R.color.orange_primary) }
 
-    // Bounce state
-    private var posX = 0f
-    private var posY = 0f
-    private var velX = 0f
-    private var velY = 0f
-
-    // Countdown state
-    private var lastSecShown = -1
+    private var lastH = ""
+    private var lastM = ""
+    private var lastS = ""
+    private var lastSecLeft = -1
     private var isFinished = false
     private var isDimmed = false
 
@@ -45,7 +45,6 @@ class LockActivity : AppCompatActivity() {
         const val DIM_BRIGHTNESS = 0.01f
         const val DIM_ALPHA = 0.4f
         const val TICK_MS = 250L
-        const val FRAME_MS = 16L
     }
 
     private val tickRunnable = object : Runnable {
@@ -63,21 +62,13 @@ class LockActivity : AppCompatActivity() {
             }
 
             val secLeft = (remaining / 1000).toInt()
-            renderTimer(secLeft)
+            render(secLeft)
 
-            if (secLeft != lastSecShown) {
-                lastSecShown = secLeft
+            if (secLeft != lastSecLeft) {
+                lastSecLeft = secLeft
                 if (secLeft in 1..3) vibrateTick()   // 3 … 2 … 1 buzz
             }
             handler.postDelayed(this, TICK_MS)
-        }
-    }
-
-    private val bounceRunnable = object : Runnable {
-        override fun run() {
-            if (isFinished) return
-            stepBounce()
-            handler.postDelayed(this, FRAME_MS)
         }
     }
 
@@ -94,66 +85,61 @@ class LockActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_lock)
 
-        lockRoot          = findViewById(R.id.lockRoot)
-        tvTimer           = findViewById(R.id.tvTimer)
+        clockWrap         = findViewById(R.id.clockWrap)
+        tsHours           = findViewById(R.id.tsHours)
+        tsMinutes         = findViewById(R.id.tsMinutes)
+        tsSeconds         = findViewById(R.id.tsSeconds)
         completionOverlay = findViewById(R.id.completionOverlay)
         tvCompletionMsg   = findViewById(R.id.tvCompletionMsg)
         findViewById<Button>(R.id.btnDone).setOnClickListener { finish() }
 
+        val white  = 0xFFFFFFFF.toInt()
+        val orange = getColor(R.color.orange_primary)
+        setupSwitcher(tsHours, white)
+        setupSwitcher(tsMinutes, white)
+        setupSwitcher(tsSeconds, orange)
+
+        // First paint without animation.
         val remaining = (LockService.lockEndTime - System.currentTimeMillis()).coerceAtLeast(0)
-        renderTimer((remaining / 1000).toInt())
+        val s = (remaining / 1000).toInt()
+        lastH = "%02d".format(s / 3600)
+        lastM = "%02d".format((s % 3600) / 60)
+        lastS = "%02d".format(s % 60)
+        tsHours.setCurrentText(lastH)
+        tsMinutes.setCurrentText(lastM)
+        tsSeconds.setCurrentText(lastS)
 
         handler.post(tickRunnable)
-        lockRoot.post { setupBounce() }
         scheduleAutoDim()
     }
 
-    // ─── Countdown rendering (white, with seconds in orange) ───────────────────
+    private fun setupSwitcher(ts: TextSwitcher, color: Int) {
+        ts.setFactory {
+            TextView(this).apply {
+                gravity = Gravity.CENTER
+                setTextColor(color)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 62f)
+                typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+                includeFontPadding = false
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            }
+        }
+        ts.inAnimation = AnimationUtils.loadAnimation(this, R.anim.flip_in)
+        ts.outAnimation = AnimationUtils.loadAnimation(this, R.anim.flip_out)
+    }
 
-    private fun renderTimer(totalSec: Int) {
+    /** Update each card; only the ones that changed animate (so seconds roll every tick). */
+    private fun render(totalSec: Int) {
         val s = totalSec.coerceAtLeast(0)
-        val h = s / 3600
-        val m = (s % 3600) / 60
-        val sec = s % 60
-        val str = "%d:%02d:%02d".format(h, m, sec)
-        val span = SpannableString(str)
-        val secStart = str.length - 2   // the two seconds digits
-        span.setSpan(
-            ForegroundColorSpan(orangeColor),
-            secStart, str.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        tvTimer.text = span
-    }
-
-    // ─── Bouncing countdown ────────────────────────────────────────────────────
-
-    private fun setupBounce() {
-        posX = (lockRoot.width - tvTimer.width) / 2f
-        posY = (lockRoot.height - tvTimer.height) / 2f
-        tvTimer.translationX = posX
-        tvTimer.translationY = posY
-
-        val speed = 1.4f * resources.displayMetrics.density   // a bit slower
-        velX = speed
-        velY = speed
-        handler.post(bounceRunnable)
-    }
-
-    private fun stepBounce() {
-        val maxX = (lockRoot.width - tvTimer.width).toFloat()
-        val maxY = (lockRoot.height - tvTimer.height).toFloat()
-        if (maxX <= 0f || maxY <= 0f) return
-
-        posX += velX
-        posY += velY
-
-        if (posX <= 0f)        { posX = 0f;    velX = -velX }
-        else if (posX >= maxX) { posX = maxX;  velX = -velX }
-        if (posY <= 0f)        { posY = 0f;    velY = -velY }
-        else if (posY >= maxY) { posY = maxY;  velY = -velY }
-
-        tvTimer.translationX = posX
-        tvTimer.translationY = posY
+        val hh = "%02d".format(s / 3600)
+        val mm = "%02d".format((s % 3600) / 60)
+        val ss = "%02d".format(s % 60)
+        if (hh != lastH) { tsHours.setText(hh);   lastH = hh }
+        if (mm != lastM) { tsMinutes.setText(mm); lastM = mm }
+        if (ss != lastS) { tsSeconds.setText(ss); lastS = ss }
     }
 
     private fun vibrateTick() {
@@ -166,7 +152,6 @@ class LockActivity : AppCompatActivity() {
         if (isFinished) return
         isFinished = true
         handler.removeCallbacks(tickRunnable)
-        handler.removeCallbacks(bounceRunnable)
         handler.removeCallbacks(autoDimRunnable)
 
         window.attributes = window.attributes.apply {
@@ -174,7 +159,7 @@ class LockActivity : AppCompatActivity() {
         }
         isDimmed = false
 
-        tvTimer.visibility = View.GONE
+        clockWrap.visibility = View.GONE
         tvCompletionMsg.text =
             "You stayed off your phone for ${formatDuration(LockService.lockTotalMinutes)}.\nNice work. 💪"
         completionOverlay.visibility = View.VISIBLE
@@ -190,7 +175,7 @@ class LockActivity : AppCompatActivity() {
             if (m == 0) "${h}h" else "${h}h ${m}m"
         }
 
-    // ─── Always-on dim (near-black, faint timer) ──────────────────────────────
+    // ─── Always-on dim (near-black, faint clock) ──────────────────────────────
 
     private fun scheduleAutoDim() {
         handler.removeCallbacks(autoDimRunnable)
@@ -200,13 +185,13 @@ class LockActivity : AppCompatActivity() {
     private fun enterDim() {
         if (isDimmed || isFinished) return
         isDimmed = true
-        tvTimer.alpha = DIM_ALPHA
+        clockWrap.alpha = DIM_ALPHA
         window.attributes = window.attributes.apply { screenBrightness = DIM_BRIGHTNESS }
     }
 
     private fun exitDim() {
         isDimmed = false
-        tvTimer.alpha = 1f
+        clockWrap.alpha = 1f
         window.attributes = window.attributes.apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         }
@@ -224,7 +209,6 @@ class LockActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(tickRunnable)
-        handler.removeCallbacks(bounceRunnable)
         handler.removeCallbacks(autoDimRunnable)
     }
 
