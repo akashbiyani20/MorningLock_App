@@ -106,6 +106,8 @@ class LockService : Service() {
     }
 
     private fun checkAndBlock() {
+        // An alarm is ringing — don't pop the lock screen over the STOP button.
+        if (AlarmService.isRinging) return
         val foreground = getForegroundApp() ?: return
         if (!isAllowed(foreground)) {
             launchLockActivity()
